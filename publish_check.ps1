@@ -260,7 +260,7 @@ if ($LASTEXITCODE -eq 0) {
 if (Test-Path "test/widget_test.dart") {
     Write-Status "STEP 7B: Running Widget Tests" "step"
     Write-Host "Executing widget tests..." -ForegroundColor Gray
-    $widgetTestOutput = flutter test test/widget_test.dart 2>&1
+    flutter test test/widget_test.dart 2>&1 | Out-Null
     if ($LASTEXITCODE -eq 0) {
         Write-Status "Widget tests passed" "success"
     } else {

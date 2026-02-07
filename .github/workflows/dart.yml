@@ -1,14 +1,14 @@
 # SmartCart Flutter CI/CD Workflow
-# Runs on every push to main and on pull requests
-# Validates code quality, runs tests, and builds APK
+# Runs once daily on schedule (with optional manual trigger)
+# Validates code quality and runs tests
 
 name: Flutter CI
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+    # Daily at 03:00 UTC
+    - cron: "0 3 * * *"
+  workflow_dispatch:
 
 jobs:
   build:

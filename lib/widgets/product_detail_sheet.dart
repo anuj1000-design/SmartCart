@@ -66,8 +66,33 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     } catch (e) {
       if (mounted) {
         setState(() => _isLoadingFavorite = false);
+        
+        // Check if it's an authentication error
+        final errorMsg = e.toString().toLowerCase();
+        String friendlyMessage;
+        
+        if (errorMsg.contains('not authenticated') || errorMsg.contains('user not authenticated')) {
+          friendlyMessage = 'Please sign in to add favorites';
+        } else if (errorMsg.contains('permission') || errorMsg.contains('denied')) {
+          friendlyMessage = 'Permission denied. Please sign in again.';
+        } else if (errorMsg.contains('network')) {
+          friendlyMessage = 'Network error. Check your connection.';
+        } else {
+          friendlyMessage = 'Failed to update favorites. Try again.';
+        }
+        
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text(friendlyMessage)),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     }

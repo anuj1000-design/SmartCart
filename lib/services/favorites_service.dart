@@ -8,13 +8,13 @@ class FavoritesService {
   /// Add item to favorites
   static Future<void> addToFavorites(Map<String, dynamic> product) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception('User not authenticated');
 
     try {
       await _firestore
-          .collection('favorites')
+          .collection('users')
           .doc(user.uid)
-          .collection('items')
+          .collection('favorites')
           .doc(product['barcode'] ?? product['name'])
           .set({...product, 'addedAt': FieldValue.serverTimestamp()});
     } catch (e) {
@@ -26,13 +26,13 @@ class FavoritesService {
   /// Remove item from favorites
   static Future<void> removeFromFavorites(String productId) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) throw Exception('User not authenticated');
 
     try {
       await _firestore
-          .collection('favorites')
+          .collection('users')
           .doc(user.uid)
-          .collection('items')
+          .collection('favorites')
           .doc(productId)
           .delete();
     } catch (e) {
@@ -48,9 +48,9 @@ class FavoritesService {
 
     try {
       final doc = await _firestore
-          .collection('favorites')
+          .collection('users')
           .doc(user.uid)
-          .collection('items')
+          .collection('favorites')
           .doc(productId)
           .get();
       return doc.exists;
@@ -68,9 +68,9 @@ class FavoritesService {
     }
 
     return _firestore
-        .collection('favorites')
+        .collection('users')
         .doc(user.uid)
-        .collection('items')
+        .collection('favorites')
         .orderBy('addedAt', descending: true)
         .snapshots();
   }

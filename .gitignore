@@ -4,7 +4,7 @@ web/firebase_config.js
 *.keystore
 .env
 build/
-*.apk
+# *.apk
 gradle-wrapper.jar
 /.gradle
 /captures/

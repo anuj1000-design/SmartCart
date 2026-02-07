@@ -1,7 +1,6 @@
 # Only ignore secrets and local config
 # android/app/google-services.json
 web/firebase_config.js
-*.keystore
 .env
 build/
 *.apk

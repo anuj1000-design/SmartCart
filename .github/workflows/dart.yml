@@ -1,4 +1,4 @@
-# SmartCart Flutter CI/CD Workflow
+# SmartCart Flutter CI/CD Workflow.
 # Runs once daily on schedule (with optional manual trigger)
 # Validates code quality and runs tests
 

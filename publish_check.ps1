@@ -176,7 +176,7 @@ if (Test-Path "firestore.rules") {
 Write-Status "STEP 5: Cleaning Build Environment" "step"
 
 Write-Host "Running flutter clean..." -ForegroundColor Gray
-flutter clean 2>&1 | Out-Null
+$cleanOutput = flutter clean 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Status "Build cleaned" "success"
 } else {
@@ -184,7 +184,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host "Running flutter pub get..." -ForegroundColor Gray
-flutter pub get 2>&1 | Out-Null
+$pubGetOutput = flutter pub get 2>&1
 if ($LASTEXITCODE -eq 0) {
     Write-Status "Dependencies fetched" "success"
 } else {
@@ -276,12 +276,23 @@ Write-Host "Generating coverage report..." -ForegroundColor Gray
 $coverageOutput = flutter test --coverage 2>&1
 if ($LASTEXITCODE -eq 0 -and (Test-Path "coverage/lcov.info")) {
     $coverageInfo = Get-Content "coverage/lcov.info" -Raw
-    # Count lines covered vs total
-    $linesFound = ([regex]::Matches($coverageInfo, "LF:")).Count
-    $linesHit = ([regex]::Matches($coverageInfo, "LH:")).Count
+    # Count lines covered vs total - FIXED: Proper calculation
+    $lfMatches = [regex]::Matches($coverageInfo, "LF:(\d+)")
+    $lhMatches = [regex]::Matches($coverageInfo, "LH:(\d+)")
     
-    if ($linesFound -gt 0) {
-        $coveragePercent = [math]::Round(($linesHit / $linesFound) * 100, 2)
+    $totalLinesFound = 0
+    $totalLinesHit = 0
+    
+    foreach ($match in $lfMatches) {
+        $totalLinesFound += [int]$match.Groups[1].Value
+    }
+    
+    foreach ($match in $lhMatches) {
+        $totalLinesHit += [int]$match.Groups[1].Value
+    }
+    
+    if ($totalLinesFound -gt 0) {
+        $coveragePercent = [math]::Round(($totalLinesHit / $totalLinesFound) * 100, 2)
         if ($coveragePercent -ge 70) {
             Write-Status "Test coverage: $coveragePercent% (Good)" "success"
         } elseif ($coveragePercent -ge 50) {
@@ -377,10 +388,11 @@ New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
 Write-Status "Created build directory: $buildDir" "info"
 
 Write-Host "`nBuilding release APK (split per ABI)..." -ForegroundColor Gray
-flutter build apk --release --split-per-abi 2>&1 | Out-Null
+$buildOutput = flutter build apk --release --split-per-abi 2>&1
 
 if ($LASTEXITCODE -ne 0) {
     Write-Status "APK build failed!" "error"
+    Write-Host $buildOutput -ForegroundColor Red
     exit 1
 }
 
@@ -394,6 +406,7 @@ Write-Status "STEP 11: Packaging Build Artifacts" "step"
 $apkPath = "build/app/outputs/flutter-apk"
 if (Test-Path $apkPath) {
     # Copy APKs
+    $apksCopied = 0
     Get-ChildItem -Path $apkPath -Filter "*.apk" | ForEach-Object {
         Copy-Item $_.FullName -Destination $buildDir
         Write-Status "Packaged: $($_.Name)" "success"
@@ -403,6 +416,13 @@ if (Test-Path $apkPath) {
         $hashFile = Join-Path $buildDir "$($_.Name).sha256"
         $hash.Hash | Out-File $hashFile -Encoding UTF8
         Write-Status "Generated SHA256 checksum" "success"
+        $apksCopied++
+    }
+    
+    # FIXED: Verify APKs were actually copied
+    if ($apksCopied -eq 0) {
+        Write-Status "No APK files found in output directory!" "error"
+        exit 1
     }
     
     # Generate build info
@@ -415,6 +435,7 @@ if (Test-Path $apkPath) {
         testsPassed = $true
         buildType = "release"
         totalTestsPassed = $totalTestsPassed
+        apkCount = $apksCopied
     }
     
     $buildInfoFile = Join-Path $buildDir "build_info.json"

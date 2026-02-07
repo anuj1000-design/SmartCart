@@ -4,8 +4,6 @@ web/firebase_config.js
 *.keystore
 .env
 build/
-PROD_BUILD_*/
-build/
 *.apk
 gradle-wrapper.jar
 /.gradle

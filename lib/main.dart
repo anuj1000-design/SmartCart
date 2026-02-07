@@ -27,6 +27,7 @@ import 'screens/report_bug_screen.dart';
 import 'providers/app_state_provider.dart';
 import 'services/analytics_service.dart';
 import 'utils/shake_detector.dart';
+import 'widgets/suspension_guard.dart';
 
 // Global navigator key for app-wide navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -300,8 +301,10 @@ class _RoleBasedHomeState extends State<RoleBasedHome> {
 
   @override
   Widget build(BuildContext context) {
-    // Always return customer interface
-    return const MainScaffold();
+    // Always return customer interface wrapped with suspension check
+    return const SuspensionGuard(
+      child: MainScaffold(),
+    );
   }
 }
 

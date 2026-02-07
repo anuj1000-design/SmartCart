@@ -5,7 +5,7 @@
   "packages": [
     {
       "name": "smartcart",
-      "version": "1.0.0+1",
+      "version": "2.0.0+1",
       "dependencies": [
         "cloud_firestore",
         "cupertino_icons",

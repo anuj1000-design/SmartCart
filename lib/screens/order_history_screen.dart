@@ -54,60 +54,67 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
     int addedCount = 0;
     int skippedCount = 0;
-    List<String> outOfStockItems = [];
+    final List<String> outOfStockItems = [];
 
-    for (var item in items) {
-      final quantity = (item['quantity'] ?? 1) as int;
-      final itemName = item['name'] ?? 'Unknown Item';
+    for (final item in items) {
+      final int desiredQty = (item['quantity'] ?? 1) as int;
+      final String productId = (item['productId'] ?? '').toString();
+      final String itemName = (item['productName'] ?? item['name'] ?? 'Unknown Item').toString();
 
-      // Find the actual product from the store's product list
-      final product = appState.products.firstWhere(
-        (p) => p.name == itemName,
-        orElse: () => Product(
-          id: itemName,
-          name: itemName,
-          brand: 'SmartCart',
-          description: '',
-          category: 'Other',
-          price: item['price'] ?? 0,
-          barcode: null,
-          imageEmoji: '📦',
-          color: Colors.green,
-          stockQuantity: 0, // Mark as out of stock if not found
+      // Prefer matching by productId; fallback to name if needed
+      Product? product = appState.products.firstWhere(
+        (p) => p.id == productId && productId.isNotEmpty,
+        orElse: () => appState.products.firstWhere(
+          (p) => p.name == itemName,
+          orElse: () => Product(
+            id: productId.isNotEmpty ? productId : itemName,
+            name: itemName,
+            brand: 'SmartCart',
+            description: '',
+            category: 'Other',
+            price: item['price'] ?? 0,
+            barcode: null,
+            imageEmoji: '📦',
+            color: Colors.green,
+            stockQuantity: 0,
+          ),
         ),
       );
 
-      // Check if product is available in stock
+      // No stock available
       if (product.stockQuantity <= 0) {
-        skippedCount += quantity;
+        skippedCount += desiredQty;
         outOfStockItems.add(itemName);
         continue;
       }
 
-      // Add items to cart, respecting stock limits
-      for (int i = 0; i < quantity; i++) {
-        // Check if we can still add more (considering cart quantity)
-        final cartItem = appState.cart.firstWhere(
-          (ci) => ci.product.id == product.id,
-          orElse: () => CartItem(product: product, quantity: 0),
-        );
+      // Current quantity already in cart for this product
+      final existingCartQty = appState.cart
+          .where((c) => c.product.id == product.id)
+          .fold<int>(0, (sum, c) => sum + c.quantity);
 
-        if (cartItem.quantity < product.stockQuantity) {
-          appState.addToCart(product, context: context);
-          addedCount++;
-        } else {
-          skippedCount++;
-          if (!outOfStockItems.contains(itemName)) {
-            outOfStockItems.add('$itemName (max stock reached)');
-          }
-          break;
-        }
+      final int availableToAdd = (product.stockQuantity - existingCartQty)
+          .clamp(0, desiredQty);
+
+      if (availableToAdd <= 0) {
+        skippedCount += desiredQty;
+        outOfStockItems.add('$itemName (max stock reached)');
+        continue;
+      }
+
+      for (int i = 0; i < availableToAdd; i++) {
+        appState.addToCart(product, context: context);
+        addedCount++;
+      }
+
+      if (availableToAdd < desiredQty) {
+        skippedCount += (desiredQty - availableToAdd);
+        outOfStockItems.add('$itemName (only $availableToAdd of $desiredQty available)');
       }
     }
 
     if (!mounted) return;
 
-    // Show result message
     if (addedCount > 0 && skippedCount == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -120,18 +127,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '✓ Added $addedCount items\n⚠️ Skipped $skippedCount items (out of stock)',
+            '✓ Added $addedCount items\n⚠️ Skipped $skippedCount items (stock limits)',
           ),
           backgroundColor: Colors.orange,
           duration: const Duration(seconds: 3),
         ),
       );
     } else {
+      final summary = outOfStockItems.isEmpty
+          ? 'No items available to reorder.'
+          : outOfStockItems.take(3).join(', ') + (outOfStockItems.length > 3 ? '...' : '');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '❌ All items are out of stock:\n${outOfStockItems.take(3).join(', ')}${outOfStockItems.length > 3 ? '...' : ''}',
-          ),
+          content: Text('❌ Cannot reorder: $summary'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 3),
         ),
@@ -299,7 +307,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                                 ),
                               ),
                               Text(
-                                '₹${((item['total'] ?? 0)).toStringAsFixed(2)}',
+                                '₹${(((item['total'] ?? 0) / 100)).toStringAsFixed(2)}',
                                 style: TextStyle(
                                   color: theme.textTheme.bodyLarge?.color,
                                 ),
@@ -320,7 +328,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                           ),
                           Text(
-                            '₹${((receipt['subtotal'] ?? 0)).toStringAsFixed(2)}',
+                            '₹${(((receipt['subtotal'] ?? 0) / 100)).toStringAsFixed(2)}',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
                             ),
@@ -335,7 +343,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                           ),
                           Text(
-                            '₹${((receipt['tax'] ?? 0)).toStringAsFixed(2)}',
+                            '₹${(((receipt['tax'] ?? 0) / 100)).toStringAsFixed(2)}',
                             style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color,
                             ),
@@ -355,7 +363,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                             ),
                           ),
                           Text(
-                            '₹${((receipt['total'] ?? 0)).toStringAsFixed(2)}',
+                            '₹${(((receipt['total'] ?? 0) / 100)).toStringAsFixed(2)}',
                             style: TextStyle(
                               color: theme.textTheme.titleLarge?.color,
                               fontWeight: FontWeight.bold,

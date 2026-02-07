@@ -20,6 +20,6 @@ key.properties
 # lib/firebase_options.dart
 pubspec.lock
 .dart_tool/
-.firebase/
-.vscode/
+/.firebase/
+/.vscode/
 

@@ -327,10 +327,14 @@ class AppStateProvider extends ChangeNotifier {
     // Allow reloading after sign-in
     final user = _authService.currentUser;
     if (user != null) {
+      // Use Firebase Auth data directly
+      final displayName = user.displayName ?? user.email?.split('@')[0] ?? "User";
+      final email = user.email ?? "no-email@smartcart.com";
+      
       _userProfile = UserProfile(
-        name: user.displayName ?? user.email?.split('@')[0] ?? "User",
-        email: user.email ?? "no-email@smartcart.com",
-        phone: user.phoneNumber ?? "+1 234 567 8900",
+        name: displayName,
+        email: email,
+        phone: user.phoneNumber ?? "",
         avatarEmoji: "👤",
       );
       notifyListeners();
@@ -354,19 +358,26 @@ class AppStateProvider extends ChangeNotifier {
         // Profile exists, start real-time listener
         loadProfileFromFirestore();
       } else {
-        // First sign-in, create profile with auth data
+        // First sign-in, create profile with Firebase Auth data
+        final displayName = user.displayName ?? user.email?.split('@')[0] ?? "User";
+        final email = user.email ?? "no-email@smartcart.com";
+        
         await cloud.FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .set({
-              'name': _userProfile.name,
-              'email': _userProfile.email,
-              'phone': _userProfile.phone,
-              'avatarEmoji': _userProfile.avatarEmoji,
+              'name': displayName,
+              'displayName': displayName,
+              'email': email,
+              'phone': user.phoneNumber ?? '',
+              'avatarEmoji': '👤',
+              'role': 'customer',
+              'isSuspended': false,
               'createdAt': cloud.FieldValue.serverTimestamp(),
               'updatedAt': cloud.FieldValue.serverTimestamp(),
+              'lastLoginTime': cloud.FieldValue.serverTimestamp(),
             });
-        debugPrint('✅ New user profile created in Firestore');
+        debugPrint('✅ New user profile created in Firestore: $displayName ($email)');
         // Start real-time listener
         loadProfileFromFirestore();
         notifyListeners();

@@ -46,6 +46,12 @@ class AuthService {
         email: email,
         password: password,
       );
+      
+      // Update last login time
+      await _firestore.collection('users').doc(result.user!.uid).set({
+        'lastLoginTime': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -66,8 +72,22 @@ class AuthService {
       );
       // Update display name
       await result.user?.updateDisplayName(name);
-      // Set role in Firestore
-      await setUserRole(result.user!.uid, role);
+      
+      // Create complete user profile in Firestore
+      await _firestore.collection('users').doc(result.user!.uid).set({
+        'name': name,
+        'email': email,
+        'displayName': name,
+        'role': role,
+        'phone': '',
+        'avatarEmoji': '👤',
+        'isSuspended': false,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'lastLoginTime': FieldValue.serverTimestamp(),
+      });
+      
+      debugPrint('✅ User profile created: $name ($email)');
       return result;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
@@ -96,7 +116,8 @@ class AuthService {
         );
         debugPrint('✅ Firebase sign-in successful');
 
-        await setUserRole(userCredential.user!.uid, 'customer');
+        // Create or update user profile in Firestore
+        await _createOrUpdateUserProfile(userCredential.user!);
         return userCredential;
       }
 
@@ -111,7 +132,8 @@ class AuthService {
         googleProvider,
       );
 
-      await setUserRole(userCredential.user!.uid, 'customer');
+      // Create or update user profile in Firestore
+      await _createOrUpdateUserProfile(userCredential.user!);
       return userCredential;
     } catch (e) {
       debugPrint('❌ Google Sign-In error: $e');
@@ -124,6 +146,53 @@ class AuthService {
         throw 'Google Sign-In failed: DEVELOPER_ERROR detected. Likely causes: SHA-1/SHA-256 fingerprints for your app are not configured in Firebase, or package name / OAuth client mismatch. Add both SHA fingerprints to the Firebase Android app, re-download `google-services.json`, replace it in `android/app/`, rebuild and try again.';
       }
       throw 'Google Sign-In failed: $e';
+    }
+  }
+
+  // Helper function to create or update user profile in Firestore
+  Future<void> _createOrUpdateUserProfile(User user) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      
+      final String displayName = user.displayName ?? user.email?.split('@')[0] ?? 'User';
+      final String email = user.email ?? 'no-email@smartcart.com';
+      
+      if (!userDoc.exists) {
+        // First time user - create complete profile
+        await _firestore.collection('users').doc(user.uid).set({
+          'name': displayName,
+          'displayName': displayName,
+          'email': email,
+          'phone': user.phoneNumber ?? '',
+          'avatarEmoji': '👤',
+          'role': 'customer',
+          'isSuspended': false,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLoginTime': FieldValue.serverTimestamp(),
+        });
+        debugPrint('✅ New user profile created: $displayName ($email)');
+      } else {
+        // Existing user - update last login and ensure name/email are set
+        final Map<String, dynamic> updates = {
+          'lastLoginTime': FieldValue.serverTimestamp(),
+        };
+        
+        // Update name/email if they're missing in Firestore
+        final data = userDoc.data();
+        if (data?['name'] == null || data?['name'] == 'Unknown' || data?['name'] == '') {
+          updates['name'] = displayName;
+          updates['displayName'] = displayName;
+        }
+        if (data?['email'] == null || data?['email'] == '') {
+          updates['email'] = email;
+        }
+        
+        await _firestore.collection('users').doc(user.uid).update(updates);
+        debugPrint('✅ User profile updated: ${data?['name'] ?? displayName}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error creating/updating user profile: $e');
     }
   }
 

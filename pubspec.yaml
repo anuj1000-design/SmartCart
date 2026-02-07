@@ -135,12 +135,8 @@ flutter_icons:
   adaptive_icon_foreground: "assets/icon/shopping_bag_icon.png"
 
 flutter_native_splash:
-  color: "#0F1113"  # Primary theme color
+  color: "#0F1113"  # Original splash color
   image: assets/icon/shopping_bag_icon.png
-  branding: assets/icon/shopping_bag_icon.png  # Or use text
-  color_dark: "#0F1113"
-  image_dark: assets/icon/shopping_bag_icon.png
-  branding_dark: assets/icon/shopping_bag_icon.png
   android_12:
     image: assets/icon/shopping_bag_icon.png
     icon_background_color: "#0F1113"

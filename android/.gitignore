@@ -18,3 +18,5 @@ key.properties
 **/*.keystore
 **/*.jks
 # lib/firebase_options.dart
+pubspec.lock
+.dart_tool/

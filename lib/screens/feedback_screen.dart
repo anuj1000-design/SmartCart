@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/ui_components.dart';
+import '../services/feedback_service.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -29,47 +31,59 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Submit to Firestore via service
+      await FeedbackService().submitFeedback(
+        message: _feedbackController.text.trim(),
+        rating: _selectedRating,
+        email: null,
+        userId: FirebaseAuth.instance.currentUser?.uid,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() => _isSubmitting = false);
-
-    // Show success dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        title: Row(
-          children: [
-            const Icon(Icons.favorite, color: Colors.pink),
-            const SizedBox(width: 12),
-            Text(
-              "Thank You!",
-              style: TextStyle(
-                color: Theme.of(context).textTheme.titleLarge?.color
+      // Show success dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: Row(
+            children: [
+              const Icon(Icons.favorite, color: Colors.pink),
+              const SizedBox(width: 12),
+              Text(
+                "Thank You!",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.titleLarge?.color
+                ),
               ),
+            ],
+          ),
+          content: Text(
+            "We appreciate your feedback. It helps us build a better app for you.",
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Close screen
+              },
+              child: const Text("Close"),
             ),
           ],
         ),
-        content: Text(
-          "We appreciate your feedback. It helps us build a better app for you.",
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium?.color
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close screen
-            },
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit feedback: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Widget _buildRatingStar(int index) {

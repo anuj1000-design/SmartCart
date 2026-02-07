@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/ui_components.dart';
+import '../services/feedback_service.dart';
 
 class ReportBugScreen extends StatefulWidget {
   const ReportBugScreen({super.key});
@@ -30,47 +32,60 @@ class _ReportBugScreenState extends State<ReportBugScreen> {
 
     setState(() => _isSubmitting = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      await FeedbackService().submitBugReport(
+        title: 'Bug report from app',
+        description: _descriptionController.text.trim(),
+        stepsToReproduce: null,
+        deviceInfo: null,
+        userId: FirebaseAuth.instance.currentUser?.uid,
+        email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() => _isSubmitting = false);
-    
-    // Show success dialog
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        title: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.green),
-            const SizedBox(width: 12),
-            Text(
-              "Report Sent",
-              style: TextStyle(
-                color: Theme.of(context).textTheme.titleLarge?.color
+      // Show success dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Theme.of(context).cardColor,
+          title: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.green),
+              const SizedBox(width: 12),
+              Text(
+                "Report Sent",
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.titleLarge?.color
+                ),
               ),
+            ],
+          ),
+          content: Text(
+            "Thanks for your feedback! We'll look into this issue right away.",
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); // Close screen
+              },
+              child: const Text("Done"),
             ),
           ],
         ),
-        content: Text(
-          "Thanks for your feedback! We'll look into this issue right away.",
-          style: TextStyle(
-            color: Theme.of(context).textTheme.bodyMedium?.color
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close screen
-            },
-            child: const Text("Done"),
-          ),
-        ],
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to submit bug report: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   @override

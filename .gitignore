@@ -21,5 +21,6 @@ key.properties
 pubspec.lock
 .dart_tool/
 .firebase/
-.vscode/
-
+.vscode/.flutter-plugins
+.flutter-plugins-dependencies
+.packages

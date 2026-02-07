@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'diagnostics_screen.dart';
+import 'notifications_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../theme/app_theme.dart';
 import '../providers/app_state_provider.dart';
@@ -187,10 +188,15 @@ class _HomeHeader extends StatelessWidget {
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
-                  child: Text(
-                    appState.userProfile.avatarEmoji,
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  backgroundImage: appState.userProfile.photoURL != null
+                      ? NetworkImage(appState.userProfile.photoURL!)
+                      : null,
+                  child: appState.userProfile.photoURL == null
+                      ? Text(
+                          appState.userProfile.avatarEmoji,
+                          style: const TextStyle(fontSize: 24),
+                        )
+                      : null,
                 ),
                 const SizedBox(width: 12),
                 Column(
@@ -266,281 +272,12 @@ class _HomeHeader extends StatelessWidget {
                 Stack(
                   children: [
                     GestureDetector(
-                      onTap: () async {
-                        await appState.loadNotifications();
-                        if (!context.mounted) return;
-                        showDialog(
-                          context: context,
-                          barrierColor: Colors.black.withValues(alpha: 0.6),
-                          builder: (context) {
-                            final notifications = appState.notifications;
-                            return Dialog(
-                              backgroundColor: Colors.transparent,
-                              insetPadding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 40,
-                              ),
-                              child: GlassCard(
-                                padding: const EdgeInsets.all(0),
-                                borderRadius: 20,
-                                child: Container(
-                                  width: 340,
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 400,
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          20,
-                                          20,
-                                          20,
-                                          0,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              Icons.notifications,
-                                              color: AppTheme.primary,
-                                              size: 24,
-                                            ),
-                                            const SizedBox(width: 10),
-                                            const Text(
-                                              'Notifications',
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppTheme.textPrimary,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(
-                                        height: 1,
-                                        color: AppTheme.darkBorder,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 8,
-                                        ),
-                                        child: notifications.isEmpty
-                                            ? Container(
-                                                width: double.infinity,
-                                                padding: const EdgeInsets.all(
-                                                  18,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppTheme.darkCardHover,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: const Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.info_outline,
-                                                      color:
-                                                          AppTheme.textTertiary,
-                                                    ),
-                                                    SizedBox(width: 12),
-                                                    Expanded(
-                                                      child: Text(
-                                                        'No notifications',
-                                                        style: TextStyle(
-                                                          color: AppTheme
-                                                              .textTertiary,
-                                                          fontSize: 15,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-                                            : SizedBox(
-                                                height: 220,
-                                                child: ListView.separated(
-                                                  shrinkWrap: true,
-                                                  itemCount:
-                                                      notifications.length,
-                                                  separatorBuilder: (c, i) =>
-                                                      const SizedBox(height: 8),
-                                                  itemBuilder: (context, i) {
-                                                    final n = notifications[i];
-                                                    return Container(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            14,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            n['read'] == false
-                                                            ? AppTheme
-                                                                  .darkCardHover
-                                                                  .withValues(
-                                                                    alpha: 0.95,
-                                                                  )
-                                                            : AppTheme.darkCard,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              10,
-                                                            ),
-                                                        border: Border.all(
-                                                          color:
-                                                              n['read'] == false
-                                                              ? AppTheme.primary
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.18,
-                                                                    )
-                                                              : AppTheme
-                                                                    .darkBorder,
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Icon(
-                                                            n['read'] == false
-                                                                ? Icons
-                                                                      .markunread
-                                                                : Icons.drafts,
-                                                            color:
-                                                                n['read'] ==
-                                                                    false
-                                                                ? AppTheme
-                                                                      .primary
-                                                                : AppTheme
-                                                                      .textTertiary,
-                                                            size: 22,
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 12,
-                                                          ),
-                                                          Expanded(
-                                                            child: Column(
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .start,
-                                                              children: [
-                                                                Text(
-                                                                  n['title'] ??
-                                                                      '',
-                                                                  style: TextStyle(
-                                                                    color:
-                                                                        n['read'] ==
-                                                                            false
-                                                                        ? AppTheme
-                                                                              .textPrimary
-                                                                        : AppTheme
-                                                                              .textTertiary,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    fontSize:
-                                                                        15,
-                                                                  ),
-                                                                ),
-                                                                if ((n['message'] ??
-                                                                        '')
-                                                                    .isNotEmpty) ...[
-                                                                  const SizedBox(
-                                                                    height: 2,
-                                                                  ),
-                                                                  Text(
-                                                                    n['message'] ??
-                                                                        '',
-                                                                    style: const TextStyle(
-                                                                      color: AppTheme
-                                                                          .textTertiary,
-                                                                      fontSize:
-                                                                          13,
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          if (n['read'] ==
-                                                              false)
-                                                            const Padding(
-                                                              padding:
-                                                                  EdgeInsets.only(
-                                                                    left: 6,
-                                                                    top: 2,
-                                                                  ),
-                                                              child: Icon(
-                                                                Icons.fiber_new,
-                                                                color:
-                                                                    Colors.red,
-                                                                size: 16,
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      const Divider(
-                                        height: 1,
-                                        color: AppTheme.darkBorder,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          16,
-                                          8,
-                                          16,
-                                          16,
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Expanded(
-                                              child: PrimaryButton(
-                                                label: 'Mark all as read',
-                                                onPressed: () async {
-                                                  await appState
-                                                      .markAllNotificationsRead();
-                                                  if (!context.mounted) return;
-                                                  Navigator.of(context).pop();
-                                                },
-                                                backgroundColor:
-                                                    AppTheme.primary,
-                                                textColor: AppTheme.textPrimary,
-                                                width: double.infinity,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 16),
-                                            Expanded(
-                                              child: PrimaryButton(
-                                                label: 'Close',
-                                                onPressed: () =>
-                                                    Navigator.of(context).pop(),
-                                                backgroundColor:
-                                                    AppTheme.darkCardHover,
-                                                textColor: AppTheme.textPrimary,
-                                                width: double.infinity,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
+                          ),
                         );
                       },
                       child: Container(

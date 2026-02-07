@@ -77,6 +77,23 @@ class AppStateProvider extends ChangeNotifier {
     await loadNotifications();
   }
 
+  // Mark a single notification as read
+  Future<void> markNotificationRead(String notificationId) async {
+    final user = _authService.currentUser;
+    if (user == null) return;
+    try {
+      await cloud.FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('notifications')
+          .doc(notificationId)
+          .update({'read': true});
+      await loadNotifications();
+    } catch (e) {
+      debugPrint('Error marking notification as read: $e');
+    }
+  }
+
   late final AuthService _authService;
   late final AnalyticsService? _analytics;
   late final InventoryService _inventory;
@@ -318,6 +335,7 @@ class AppStateProvider extends ChangeNotifier {
     email: "guest@smartcart.com",
     phone: "+1 234 567 8900",
     avatarEmoji: "👤",
+    photoURL: null,
   );
 
   UserProfile get userProfile => _userProfile;
@@ -336,6 +354,7 @@ class AppStateProvider extends ChangeNotifier {
         email: email,
         phone: user.phoneNumber ?? "",
         avatarEmoji: "👤",
+        photoURL: user.photoURL, // Include Google profile picture
       );
       notifyListeners();
       // Auto-create or load profile from Firestore on sign-in
@@ -370,6 +389,7 @@ class AppStateProvider extends ChangeNotifier {
               'displayName': displayName,
               'email': email,
               'phone': user.phoneNumber ?? '',
+              'photoURL': user.photoURL, // Save Google profile picture
               'avatarEmoji': '👤',
               'role': 'customer',
               'isSuspended': false,
@@ -609,7 +629,14 @@ class AppStateProvider extends ChangeNotifier {
   }) async {
     if (_cart.isEmpty) return;
 
-    final userId = _authService.currentUser?.uid ?? 'guest';
+    final user = _authService.currentUser;
+    if (user == null) {
+      debugPrint('❌ Order cancelled: User not authenticated');
+      throw Exception('You must be signed in to place an order');
+    }
+    
+    final userId = user.uid;
+    final userEmail = user.email ?? '';
 
     // Validate stock before proceeding
     if (!canPlaceOrder()) {
@@ -640,18 +667,25 @@ class AppStateProvider extends ChangeNotifier {
       );
 
       // Save order to Firestore
-      await cloud.FirebaseFirestore.instance
-          .collection('orders')
-          .doc(order.id)
-          .set({
-            'id': order.id,
-            'receiptNo': receiptId, // Unique receipt/transaction ID (Full UUID)
-            'orderNumber':
-                orderNumber, // User-friendly 12-char random order number
-            'exitCode': exitCode, // Exit verification code
-            'userId': userId,
-            'date': order.date,
-            'items': order.items
+      debugPrint('📝 Saving order to Firestore...');
+      debugPrint('🔑 User ID: $userId');
+      debugPrint('📧 User Email: $userEmail');
+      debugPrint('📦 Order ID: ${order.id}');
+      
+      try {
+        await cloud.FirebaseFirestore.instance
+            .collection('orders')
+            .doc(order.id)
+            .set({
+              'id': order.id,
+              'receiptNo': receiptId, // Unique receipt/transaction ID (Full UUID)
+              'orderNumber':
+                  orderNumber, // User-friendly 12-char random order number
+              'exitCode': exitCode, // Exit verification code
+              'userId': userId,
+              'email': userEmail, // Add email for order tracking
+              'date': order.date,
+              'items': order.items
                 .map(
                   (item) => {
                     'productId': item.product.id,
@@ -667,6 +701,13 @@ class AppStateProvider extends ChangeNotifier {
             'paymentStatus': order.paymentStatus,
             'createdAt': cloud.FieldValue.serverTimestamp(),
           });
+        debugPrint('✅ Order saved successfully to Firestore');
+      } catch (e) {
+        debugPrint('❌ FIRESTORE ERROR: $e');
+        debugPrint('❌ Error type: ${e.runtimeType}');
+        debugPrint('❌ Full error: ${e.toString()}');
+        rethrow;
+      }
 
       // Deduct stock from products (prevent negative stock) using transaction
       for (var item in _cart) {
@@ -987,6 +1028,7 @@ class AppStateProvider extends ChangeNotifier {
             'email': _userProfile.email,
             'phone': _userProfile.phone,
             'avatarEmoji': _userProfile.avatarEmoji,
+            'photoURL': _userProfile.photoURL, // Save Google profile picture
             'updatedAt': cloud.FieldValue.serverTimestamp(),
           }, cloud.SetOptions(merge: true));
     } catch (e) {
@@ -1014,6 +1056,7 @@ class AppStateProvider extends ChangeNotifier {
                       data['email'] ?? user.email ?? 'no-email@smartcart.com',
                   phone: data['phone'] ?? '+1 234 567 8900',
                   avatarEmoji: data['avatarEmoji'] ?? '👤',
+                  photoURL: data['photoURL'], // Load Google profile picture
                 );
                 notifyListeners();
               }

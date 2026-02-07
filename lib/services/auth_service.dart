@@ -80,6 +80,7 @@ class AuthService {
         'displayName': name,
         'role': role,
         'phone': '',
+        'photoURL': null, // No photo for email signups
         'avatarEmoji': '👤',
         'isSuspended': false,
         'createdAt': FieldValue.serverTimestamp(),
@@ -164,6 +165,7 @@ class AuthService {
           'displayName': displayName,
           'email': email,
           'phone': user.phoneNumber ?? '',
+          'photoURL': user.photoURL, // Save Google profile picture
           'avatarEmoji': '👤',
           'role': 'customer',
           'isSuspended': false,
@@ -178,7 +180,7 @@ class AuthService {
           'lastLoginTime': FieldValue.serverTimestamp(),
         };
         
-        // Update name/email if they're missing in Firestore
+        // Update name/email/photoURL if they're missing in Firestore
         final data = userDoc.data();
         if (data?['name'] == null || data?['name'] == 'Unknown' || data?['name'] == '') {
           updates['name'] = displayName;
@@ -186,6 +188,10 @@ class AuthService {
         }
         if (data?['email'] == null || data?['email'] == '') {
           updates['email'] = email;
+        }
+        // Update photoURL if user has one and it's not saved yet
+        if (user.photoURL != null && user.photoURL != data?['photoURL']) {
+          updates['photoURL'] = user.photoURL;
         }
         
         await _firestore.collection('users').doc(user.uid).update(updates);

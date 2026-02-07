@@ -127,6 +127,7 @@ class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
       throw Exception('User not authenticated');
     }
     debugPrint('👤 User authenticated: ${user.uid}');
+    debugPrint('📧 User email: ${user.email}');
 
     // Use shared UniqueIdService for unique IDs
     final ids = await UniqueIdService.generateUniqueOrderIds();
@@ -163,33 +164,45 @@ class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
 
     // Create order in orders collection
     debugPrint('📝 Creating order document in orders collection...');
-    final orderRef = await FirebaseFirestore.instance.collection('orders').add({
-      'receiptNo': receiptId, // Unique receipt/transaction ID (Full UUID)
-      'orderNumber': orderNumber, // User-friendly 12-char random order number
-      'exitCode': exitCode, // Exit verification code
-      'userId': user.uid,
-      'items': items
-          .map(
-            (item) => {
-              'productId': item.product.id,
-              'productName': item.product.name,
-              'quantity': item.quantity,
-              'price': item.product.price,
-              'total': item.product.price * item.quantity,
-            },
-          )
-          .toList(),
-      'subtotal': total,
-      'tax': (total * 0.08).round(),
-      'total': (total * 1.08).round(),
-      'paymentMethod': 'Express Checkout',
-      'createdAt': cloud.FieldValue.serverTimestamp(),
-      'storeLocation': 'SmartCart Store #001',
-    });
+    debugPrint('🔑 Order userId will be: ${user.uid}');
+    debugPrint('📧 Order email will be: ${user.email}');
+    
+    try {
+      final orderRef = await FirebaseFirestore.instance.collection('orders').add({
+        'receiptNo': receiptId, // Unique receipt/transaction ID (Full UUID)
+        'orderNumber': orderNumber, // User-friendly 12-char random order number
+        'exitCode': exitCode, // Exit verification code
+        'userId': user.uid,
+        'email': user.email ?? '', // Add email for order tracking
+        'items': items
+            .map(
+              (item) => {
+                'productId': item.product.id,
+                'productName': item.product.name,
+                'quantity': item.quantity,
+                'price': item.product.price,
+                'total': item.product.price * item.quantity,
+              },
+            )
+            .toList(),
+        'subtotal': total,
+        'tax': (total * 0.08).round(),
+        'total': (total * 1.08).round(),
+        'paymentMethod': 'Express Checkout',
+        'status': 'pending',
+        'createdAt': cloud.FieldValue.serverTimestamp(),
+        'storeLocation': 'SmartCart Store #001',
+      });
 
-    debugPrint(
-      '✅ Order created in DB with ID: ${orderRef.id}, Receipt: $receiptId, Order: $orderNumber, Exit: $exitCode',
-    );
+      debugPrint(
+        '✅ Order created in DB with ID: ${orderRef.id}, Receipt: $receiptId, Order: $orderNumber, Exit: $exitCode',
+      );
+    } catch (e) {
+      debugPrint('❌ FIRESTORE ERROR: $e');
+      debugPrint('❌ Error type: ${e.runtimeType}');
+      debugPrint('❌ Full error: ${e.toString()}');
+      rethrow;
+    }
 
     // Update stock quantities for each product
     final batch = FirebaseFirestore.instance.batch();

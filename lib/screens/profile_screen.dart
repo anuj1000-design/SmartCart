@@ -28,10 +28,15 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
-                    child: Text(
-                      appState.userProfile.avatarEmoji,
-                      style: const TextStyle(fontSize: 50),
-                    ),
+                    backgroundImage: appState.userProfile.photoURL != null
+                        ? NetworkImage(appState.userProfile.photoURL!)
+                        : null,
+                    child: appState.userProfile.photoURL == null
+                        ? Text(
+                            appState.userProfile.avatarEmoji,
+                            style: const TextStyle(fontSize: 50),
+                          )
+                        : null,
                   ),
                   Positioned(
                     bottom: 0,

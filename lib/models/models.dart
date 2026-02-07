@@ -258,6 +258,7 @@ class UserProfile {
   String email;
   String phone;
   String avatarEmoji;
+  String? photoURL; // Google profile picture URL
   String membershipTier;
 
   UserProfile({
@@ -265,6 +266,7 @@ class UserProfile {
     required this.email,
     required this.phone,
     required this.avatarEmoji,
+    this.photoURL,
     this.membershipTier = "User",
   });
 }

@@ -62,7 +62,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
       }
       final app = Firebase.app();
       _firebaseReady = true;
-      _firebaseProject = app.options.projectId ?? 'unknown';
+      _firebaseProject = app.options.projectId;
     } catch (e) {
       _firebaseReady = false;
       _firebaseErrors = e.toString();

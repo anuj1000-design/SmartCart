@@ -91,7 +91,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       // Current quantity already in cart for this product
       final existingCartQty = appState.cart
           .where((c) => c.product.id == product.id)
-          .fold<int>(0, (sum, c) => sum + c.quantity);
+          .fold<int>(0, (acc, c) => acc + c.quantity);
 
       final int availableToAdd = (product.stockQuantity - existingCartQty)
           .clamp(0, desiredQty);

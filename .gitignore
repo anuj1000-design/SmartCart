@@ -1,5 +1,5 @@
 # Only ignore secrets and local config
-android/app/google-services.json
+# android/app/google-services.json
 web/firebase_config.js
 *.keystore
 .env
@@ -17,4 +17,4 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
-android/app/google-services.json
+# lib/firebase_options.dart

@@ -1,0 +1,7 @@
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path_android: "assets/icon/shopping_bag_icon.png"
+  image_path_ios: "assets/icon/shopping_bag_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true

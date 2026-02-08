@@ -220,6 +220,7 @@ class AppStateProvider extends ChangeNotifier {
           color: Colors.grey.shade800,
           imageEmoji: data['imageEmoji'] ?? '📦',
           stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
+          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
         );
       }).toList();
 
@@ -269,6 +270,7 @@ class AppStateProvider extends ChangeNotifier {
           color: Colors.grey.shade800,
           imageEmoji: data['imageEmoji'] ?? '📦',
           stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
+          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
         );
       }).toList();
 
@@ -311,6 +313,7 @@ class AppStateProvider extends ChangeNotifier {
           color: Colors.grey.shade800,
           imageEmoji: data['imageEmoji'] ?? '📦',
           stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
+          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
         );
       }).toList();
       notifyListeners();

@@ -5,6 +5,8 @@ import '../models/models.dart';
 import '../providers/app_state_provider.dart';
 import '../services/favorites_service.dart';
 import '../services/review_service.dart';
+import '../services/shopping_list_service.dart';
+import '../services/recently_viewed_service.dart';
 import 'stock_notification_widget.dart';
 
 class ProductDetailSheet extends StatefulWidget {
@@ -18,6 +20,7 @@ class ProductDetailSheet extends StatefulWidget {
 class _ProductDetailSheetState extends State<ProductDetailSheet> {
   bool _isFavorite = false;
   bool _isLoadingFavorite = false;
+  bool _isInShoppingList = false;
   double _averageRating = 0.0;
   int _reviewCount = 0;
   bool _isLoadingRating = true;
@@ -26,7 +29,10 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
   void initState() {
     super.initState();
     _checkFavoriteStatus();
+    _checkShoppingListStatus();
     _loadRating();
+    // Track product view
+    RecentlyViewedService().trackView(widget.product.id);
   }
 
   Future<void> _loadRating() async {
@@ -46,12 +52,87 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
     }
   }
 
+  Map<String, dynamic> _getBadgeInfo(String tag) {
+    final tagLower = tag.toLowerCase();
+    
+    // Preset tag mappings
+    if (tagLower == 'vegan') {
+      return {'label': 'Vegan', 'icon': Icons.spa, 'color': Colors.green};
+    } else if (tagLower == 'glutenfree' || tagLower == 'gluten free') {
+      return {'label': 'Gluten Free', 'icon': Icons.grass, 'color': Colors.amber};
+    } else if (tagLower == 'organic') {
+      return {'label': 'Organic', 'icon': Icons.eco, 'color': Colors.green};
+    } else if (tagLower == 'keto') {
+      return {'label': 'Keto', 'icon': Icons.bolt, 'color': Colors.purple};
+    } else if (tagLower == 'lowsodium' || tagLower == 'low sodium') {
+      return {'label': 'Low Sodium', 'icon': Icons.water_drop, 'color': Colors.blue};
+    } else if (tagLower == 'bestseller' || tagLower == 'best seller') {
+      return {'label': 'Best Seller', 'icon': Icons.star, 'color': Colors.orange};
+    } else if (tagLower == 'new') {
+      return {'label': 'New', 'icon': Icons.fiber_new, 'color': Colors.pink};
+    } else if (tagLower == 'sale' || tagLower == 'discount') {
+      return {'label': 'Sale', 'icon': Icons.local_offer, 'color': Colors.red};
+    } else if (tagLower == 'premium') {
+      return {'label': 'Premium', 'icon': Icons.workspace_premium, 'color': Colors.yellow.shade700};
+    } else if (tagLower == 'exclusive') {
+      return {'label': 'Exclusive', 'icon': Icons.diamond, 'color': Colors.deepPurple};
+    } else {
+      // Default for custom tags
+      return {'label': tag, 'icon': Icons.label, 'color': Colors.grey};
+    }
+  }
+
   Future<void> _checkFavoriteStatus() async {
     final isFav = await FavoritesService.isFavorite(
       widget.product.barcode ?? widget.product.name,
     );
     if (mounted) {
       setState(() => _isFavorite = isFav);
+    }
+  }
+
+  Future<void> _checkShoppingListStatus() async {
+    final isInList = await ShoppingListService().isInList(widget.product.id);
+    if (mounted) {
+      setState(() => _isInShoppingList = isInList);
+    }
+  }
+
+  Future<void> _toggleShoppingList() async {
+    try {
+      if (_isInShoppingList) {
+        await ShoppingListService().removeFromList(widget.product.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Removed from shopping list'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        await ShoppingListService().addToList(widget.product);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Added to shopping list'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+      if (mounted) {
+        setState(() => _isInShoppingList = !_isInShoppingList);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -407,28 +488,46 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                         ),
                       ],
                     ),
-                    IconButton(
-                      onPressed: _isLoadingFavorite ? null : _toggleFavorite,
-                      icon: _isLoadingFavorite
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _toggleShoppingList,
+                          icon: Icon(
+                            _isInShoppingList
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                            color: _isInShoppingList
+                                ? Colors.blueAccent
+                                : Colors.white,
+                            size: 28,
+                          ),
+                          tooltip: 'Shopping List',
+                        ),
+                        IconButton(
+                          onPressed: _isLoadingFavorite ? null : _toggleFavorite,
+                          icon: _isLoadingFavorite
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white,
+                                    ),
+                                  ),
+                                )
+                              : Icon(
+                                  _isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: _isFavorite
+                                      ? Colors.redAccent
+                                      : Colors.white,
+                                  size: 30,
                                 ),
-                              ),
-                            )
-                          : Icon(
-                              _isFavorite
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              color: _isFavorite
-                                  ? Colors.redAccent
-                                  : Colors.white,
-                              size: 30,
-                            ),
+                          tooltip: 'Favorite',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -450,14 +549,19 @@ class _ProductDetailSheetState extends State<ProductDetailSheet> {
                 // Stock Status
                 _StockStatusWidget(product: widget.product, appState: appState),
                 const SizedBox(height: 24),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
-                    _InfoBadge(
-                      label: "Organic",
-                      icon: Icons.eco,
-                      color: Colors.green,
-                    ),
-                    const SizedBox(width: 12),
+                    // Display product tags dynamically
+                    ...widget.product.tags.map((tag) {
+                      final badgeInfo = _getBadgeInfo(tag);
+                      return _InfoBadge(
+                        label: badgeInfo['label'] as String,
+                        icon: badgeInfo['icon'] as IconData,
+                        color: badgeInfo['color'] as Color,
+                      );
+                    }),
                     if (!_isLoadingRating)
                       GestureDetector(
                         onTap: () => _showReviews(context),
@@ -590,22 +694,22 @@ class _InfoBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withAlpha((0.1 * 255).toInt()),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withAlpha((0.3 * 255).toInt())),
+        color: color.withAlpha((0.15 * 255).toInt()),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: color),
+          Icon(icon, size: 14, color: color),
           const SizedBox(width: 6),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
             ),
           ),
         ],

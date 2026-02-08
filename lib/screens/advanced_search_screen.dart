@@ -26,7 +26,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   int _minPrice = 0;
   int _maxPrice = 100000; // Max ₹1000 (100000 paise)
   final Set<String> _selectedBrands = {};
-  final Set<DietaryBadge> _selectedDietaryBadges = {};
+  final Set<String> _selectedTags = {};
   SortBy _sortBy = SortBy.popularity;
 
   late TextEditingController _searchController;
@@ -87,11 +87,11 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       bool matchesBrand =
           _selectedBrands.isEmpty || _selectedBrands.contains(p.brand);
 
-      // Dietary badges filter
-      bool matchesDietary =
-          _selectedDietaryBadges.isEmpty ||
-          _selectedDietaryBadges.any(
-            (badge) => p.dietaryBadges.contains(badge),
+      // Tags filter
+      bool matchesTags =
+          _selectedTags.isEmpty ||
+          _selectedTags.any(
+            (tag) => p.tags.contains(tag),
           );
 
       if (!matchesPrice) {
@@ -99,13 +99,13 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           '🔍 ${p.name}: Price ${p.price} not in range $_minPrice-$_maxPrice',
         );
       }
-      if (!matchesDietary) {
+      if (!matchesTags) {
         debugPrint(
-          '🔍 ${p.name}: Dietary badges mismatch - has $p.dietaryBadges, needs $_selectedDietaryBadges',
+          '🔍 ${p.name}: Tags mismatch - has ${p.tags}, needs $_selectedTags',
         );
       }
 
-      return matchesSearch && matchesPrice && matchesBrand && matchesDietary;
+      return matchesSearch && matchesPrice && matchesBrand && matchesTags;
     }).toList();
 
     // Apply sorting

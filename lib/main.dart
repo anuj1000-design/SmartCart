@@ -26,6 +26,7 @@ import 'screens/notifications_screen.dart';
 import 'screens/report_bug_screen.dart';
 import 'providers/app_state_provider.dart';
 import 'services/analytics_service.dart';
+import 'services/push_notification_service.dart';
 import 'utils/shake_detector.dart';
 import 'widgets/suspension_guard.dart';
 
@@ -91,6 +92,9 @@ void main() {
 
       // Initialize analytics and crash monitoring
       await AnalyticsService().initialize();
+
+      // Initialize push notifications
+      await PushNotificationService().initialize();
     } catch (e) {
       debugPrint('Initialization error: $e');
     }

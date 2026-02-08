@@ -6,7 +6,15 @@ import 'package:flutter/material.dart';
 
 enum UserRole { customer, admin, counter }
 
-enum DietaryBadge { vegan, glutenFree, organic, keto, lowSodium }
+enum OrderStatus {
+  pending,
+  confirmed,
+  preparing,
+  packed,
+  outForDelivery,
+  delivered,
+  cancelled
+}
 
 class Product {
   final String id;
@@ -18,7 +26,7 @@ class Product {
   final Color color;
   final String imageEmoji;
   final String? barcode;
-  final List<DietaryBadge> dietaryBadges;
+  final List<String> tags;
   final int stockQuantity;
   bool isFavorite;
 
@@ -33,7 +41,7 @@ class Product {
     required this.imageEmoji,
     this.isFavorite = false,
     this.barcode,
-    this.dietaryBadges = const [],
+    this.tags = const [],
     this.stockQuantity = 0,
   });
 }

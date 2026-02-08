@@ -183,45 +183,51 @@ class _HomeHeader extends StatelessWidget {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
-                  backgroundImage: appState.userProfile.photoURL != null
-                      ? NetworkImage(appState.userProfile.photoURL!)
-                      : null,
-                  child: appState.userProfile.photoURL == null
-                      ? Text(
-                          appState.userProfile.avatarEmoji,
-                          style: const TextStyle(fontSize: 24),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "GOOD ${_getTimeOfDay()}",
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodySmall?.color, // Dynamic
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
+            Expanded(
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
+                    backgroundImage: appState.userProfile.photoURL != null
+                        ? NetworkImage(appState.userProfile.photoURL!)
+                        : null,
+                    child: appState.userProfile.photoURL == null
+                        ? Text(
+                            appState.userProfile.avatarEmoji,
+                            style: const TextStyle(fontSize: 24),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "GOOD ${_getTimeOfDay()}",
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.bodySmall?.color, // Dynamic
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        Text(
+                          appState.userProfile.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Theme.of(context).textTheme.titleLarge?.color, // Dynamic
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      appState.userProfile.name,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.titleLarge?.color, // Dynamic
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
             Row(
               children: [

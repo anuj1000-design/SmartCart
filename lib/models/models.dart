@@ -78,6 +78,7 @@ class CartItem {
 class Review {
   final String id;
   final String productId;
+  final String userId;
   final String userName;
   final double rating; // 1-5
   final String comment;
@@ -86,6 +87,7 @@ class Review {
   Review({
     required this.id,
     required this.productId,
+    required this.userId,
     required this.userName,
     required this.rating,
     required this.comment,
@@ -96,6 +98,7 @@ class Review {
     return {
       'id': id,
       'productId': productId,
+      'userId': userId,
       'userName': userName,
       'rating': rating,
       'comment': comment,
@@ -107,6 +110,7 @@ class Review {
     return Review(
       id: map['id'] ?? '',
       productId: map['productId'] ?? '',
+      userId: map['userId'] ?? '',
       userName: map['userName'] ?? 'Anonymous',
       rating: (map['rating'] ?? 0).toDouble(),
       comment: map['comment'] ?? '',

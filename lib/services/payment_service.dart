@@ -32,7 +32,8 @@ class PaymentService {
   /// If UPI is supported, at least one payment app is installed
   static Future<bool> isUpiSupported() async {
     try {
-      final upiLink = Uri.parse('upi://pay?pa=test@upi&pn=Test&am=1&cu=INR');
+      // Minimal UPI URI for capability detection only (not launched)
+      final upiLink = Uri.parse('upi://pay?pa=merchant@upi&pn=SmartCart&am=1&cu=INR');
       return await canLaunchUrl(upiLink);
     } catch (e) {
       return true; // Assume supported if check fails

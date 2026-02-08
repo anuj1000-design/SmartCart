@@ -17,9 +17,11 @@ class BarcodeScannerScreen extends StatefulWidget {
   State<BarcodeScannerScreen> createState() => _BarcodeScannerScreenState();
 }
 
-class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
+class _BarcodeScannerScreenState extends State<BarcodeScannerScreen>
+    with TickerProviderStateMixin {
   final MobileScannerController controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.normal, // Changed for continuous scanning
+    detectionSpeed: DetectionSpeed.normal,
+    facing: CameraFacing.back, // Start with rear camera
   );
 
   final FlutterTts flutterTts = FlutterTts();
@@ -33,11 +35,23 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   // Track whether camera is available and gracefully show a placeholder if not.
   bool _cameraAvailable = true;
 
+  // Animation controllers for enhanced UI
+  late AnimationController _scanLineController;
+  late AnimationController _pulseController;
+  late Animation<double> _scanLineAnimation;
+  late Animation<double> _pulseAnimation;
+
   @override
   void initState() {
     super.initState();
+    // Reset scan state on screen open
+    scannedBarcodes.clear();
+    itemsScanned = 0;
+    isProcessing = false;
+    
     _initializeTTS();
     _loadScanHistory();
+    _initializeAnimations();
 
     // Probe camera availability without letting exceptions crash the app.
     () async {
@@ -50,6 +64,34 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         setState(() => _cameraAvailable = false);
       }
     }();
+  }
+
+  void _initializeAnimations() {
+    // Scanning line animation
+    _scanLineController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+
+    _scanLineAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _scanLineController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Pulse animation for frame
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   Future<void> _initializeTTS() async {
@@ -75,9 +117,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<void> _speak(String text) async {
-    if (isContinuousMode) {
-      await flutterTts.speak(text);
-    }
+    // Speak in both modes for better feedback
+    await flutterTts.speak(text);
   }
 
   Future<void> _vibrate() async {
@@ -95,6 +136,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       debugPrint('Controller dispose failed: $e');
     }
     flutterTts.stop();
+    _scanLineController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -143,7 +186,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
         // Add to scan history as not found
         _addToScanHistory(barcodeValue, null, false);
-        setState(() => isProcessing = false);
+        if (mounted) {
+          setState(() => isProcessing = false);
+        }
+        
+        // In single mode, close after failed scan too
+        if (!isContinuousMode && mounted) {
+          Navigator.pop(context);
+          return;
+        }
         return;
       }
 
@@ -170,9 +221,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final appState = Provider.of<AppStateProvider>(context, listen: false);
         appState.addToCart(product, context: context);
 
-        // Mark as scanned in this session
-        scannedBarcodes.add(barcodeValue);
-        itemsScanned++;
+        // Mark as scanned in continuous mode only
+        if (isContinuousMode) {
+          scannedBarcodes.add(barcodeValue);
+          itemsScanned++;
+        }
 
         // Voice feedback
         await _speak("${product.name} added to cart");
@@ -182,12 +235,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         _addToScanHistory(barcodeValue, product.name, true);
 
         if (!isContinuousMode) {
-          // Navigate back after delay in single mode
-          Future.delayed(const Duration(milliseconds: 800), () {
-            if (mounted) {
-              Navigator.pop(context);
-            }
-          });
+          // Navigate back immediately in single mode
+          if (mounted) {
+            Navigator.pop(context);
+          }
+          return; // Exit early to prevent finally block
         }
       }
     } catch (e) {
@@ -201,8 +253,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           ),
         );
       }
+      
+      // In single mode, close on error too
+      if (!isContinuousMode && mounted) {
+        Navigator.pop(context);
+        return;
+      }
     } finally {
-      setState(() => isProcessing = false);
+      if (mounted) {
+        setState(() => isProcessing = false);
+      }
     }
   }
 
@@ -229,6 +289,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     setState(() {
       isContinuousMode = !isContinuousMode;
       scannedBarcodes.clear(); // Reset for new mode
+      if (!isContinuousMode) {
+        // In single mode, reset processing state to allow immediate scan
+        isProcessing = false;
+      }
     });
 
     _speak(isContinuousMode ? "Continuous scan mode" : "Single scan mode");
@@ -347,66 +411,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
-  void _showSampleBarcodes(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.darkCard,
-        title: const Text(
-          'Sample Barcodes',
-          style: TextStyle(color: AppTheme.textPrimary),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Scan these barcodes to test:',
-              style: TextStyle(color: AppTheme.textTertiary),
-            ),
-            const SizedBox(height: 16),
-            _buildSampleBarcode('Organic Bananas', '123456789012'),
-            _buildSampleBarcode('Artisan Bread', '234567890123'),
-            _buildSampleBarcode('Almond Milk', '345678901234'),
-            _buildSampleBarcode('Avocados (3pk)', '456789012345'),
-            _buildSampleBarcode('Greek Yogurt', '567890123456'),
-            _buildSampleBarcode('Laundry Pods', '678901234567'),
-            _buildSampleBarcode('Red Apples', '789012345678'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildSampleBarcode(String productName, String barcode) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              productName,
-              style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-            ),
-          ),
-          Text(
-            barcode,
-            style: const TextStyle(
-              color: AppTheme.primary,
-              fontSize: 12,
-              fontFamily: 'monospace',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _showManualCodeEntry(BuildContext context) async {
     final codeController = TextEditingController();
@@ -489,9 +494,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.darkBg,
-      appBar: AppBar(
-        backgroundColor: AppTheme.darkBg,
-        title: Column(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.darkCard,
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(24),
+              bottomRight: Radius.circular(24),
+            ),
+            border: Border.all(
+              color: AppTheme.primary.withValues(alpha: 0.2),
+              width: 1,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
@@ -500,18 +520,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ),
             Text(
               isContinuousMode
-                  ? 'Continuous Mode • $itemsScanned items'
-                  : 'Single Mode',
+                  ? 'Continuous • $itemsScanned scanned'
+                  : 'Single Scan • Auto-close',
               style: TextStyle(
                 color: isContinuousMode
                     ? AppTheme.statusSuccess
-                    : AppTheme.primary,
+                    : AppTheme.accentBlue,
                 fontSize: 12,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
-        ),
-        leading: IconButton(
+            ),
+            leading: IconButton(
           icon: const Icon(Icons.close, color: AppTheme.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
@@ -538,12 +559,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             onPressed: () => _showScanHistory(context),
             tooltip: 'Scan History',
           ),
-          // Sample barcodes
-          IconButton(
-            icon: const Icon(Icons.info_outline, color: AppTheme.textPrimary),
-            onPressed: () => _showSampleBarcodes(context),
-            tooltip: 'Sample Barcodes',
-          ),
           // Flash toggle
           IconButton(
             icon: Icon(
@@ -553,6 +568,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             onPressed: () async {
               try {
                 await controller.toggleTorch();
+                setState(() {}); // Rebuild to update icon
               } catch (e) {
                 debugPrint('Torch toggle failed: $e');
               }
@@ -568,13 +584,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             onPressed: () async {
               try {
                 await controller.switchCamera();
+                setState(() {}); // Rebuild after camera switch
               } catch (e) {
                 debugPrint('Switch camera failed: $e');
               }
             },
             tooltip: 'Switch Camera',
+              ),
+            ],
           ),
-        ],
+        ),
       ),
       body: Stack(
         children: [
@@ -609,22 +628,68 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     ),
                   ),
                 ),
-          // Scanning overlay
-          CustomPaint(
-            painter: ScannerOverlay(),
-            child: const SizedBox.expand(),
+          // Scanning overlay with animations
+          AnimatedBuilder(
+            animation: Listenable.merge([_scanLineAnimation, _pulseAnimation]),
+            builder: (context, child) {
+              return CustomPaint(
+                painter: ScannerOverlay(
+                  scanLinePosition: _scanLineAnimation.value,
+                  pulseScale: _pulseAnimation.value,
+                ),
+                child: const SizedBox.expand(),
+              );
+            },
           ),
-          // Processing indicator
+          // Processing indicator (clean card style)
           if (isProcessing)
             Container(
-              color: AppTheme.darkBg.withValues(alpha: 0.7),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+              color: AppTheme.darkBg.withValues(alpha: 0.85),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: AppTheme.darkCard,
+                    borderRadius: BorderRadius.circular(24), // Match app card radius
+                    border: Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 60,
+                        height: 60,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 5,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Processing...',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Looking up product',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          // Instructions
+          // Instructions with glassmorphism
           Positioned(
             bottom: 140,
             left: 0,
@@ -633,35 +698,111 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
-                  vertical: 16,
+                  vertical: 20,
                 ),
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
-                  color: AppTheme.darkBg.withValues(alpha: 0.85),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.darkCard,
+                  borderRadius: BorderRadius.circular(24), // Match app cards
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.2),
+                    width: 1,
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      isContinuousMode
-                          ? 'Scan multiple items • Voice feedback enabled'
-                          : 'Scan one item at a time',
-                      style: const TextStyle(
-                        color: AppTheme.textPrimary,
-                        fontSize: 16,
+                    // Mode indicator badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      textAlign: TextAlign.center,
+                      decoration: BoxDecoration(
+                        color: isContinuousMode 
+                            ? AppTheme.statusSuccess.withValues(alpha: 0.15)
+                            : AppTheme.accentBlue.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isContinuousMode 
+                              ? AppTheme.statusSuccess.withValues(alpha: 0.3)
+                              : AppTheme.accentBlue.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        isContinuousMode ? 'CONTINUOUS MODE' : 'SINGLE SCAN MODE',
+                        style: TextStyle(
+                          color: isContinuousMode 
+                              ? AppTheme.statusSuccess 
+                              : AppTheme.accentBlue,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isContinuousMode
+                              ? Icons.repeat_rounded
+                              : Icons.center_focus_strong_rounded,
+                          color: AppTheme.primary,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                        Flexible(
+                          child: Text(
+                            isContinuousMode
+                                ? 'Scan multiple items continuously'
+                                : 'Scans one item and closes automatically',
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
                     ),
                     if (isContinuousMode && itemsScanned > 0)
                       Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          '$itemsScanned items scanned this session',
-                          style: const TextStyle(
-                            color: AppTheme.statusSuccess,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.statusSuccess.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AppTheme.statusSuccess.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.check_circle_rounded,
+                                color: AppTheme.statusSuccess,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$itemsScanned items scanned',
+                                style: const TextStyle(
+                                  color: AppTheme.statusSuccess,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -678,29 +819,34 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Manual entry button
+                // Manual entry button (stadium shaped like app buttons)
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.statusSuccess,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: AppTheme.textPrimary,
+                      shape: const StadiumBorder(),
+                      elevation: 4,
+                      shadowColor: AppTheme.primary.withValues(alpha: 0.4),
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
                     ),
                     onPressed: () => _showManualCodeEntry(context),
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.edit, color: AppTheme.textPrimary),
-                        SizedBox(width: 8),
-                        Text(
+                        const Icon(
+                          Icons.keyboard_rounded,
+                          size: 22,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
                           'Enter Code Manually',
                           style: TextStyle(
-                            color: AppTheme.textPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -708,27 +854,37 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Clear history button (only show if there's history)
+                // Clear history button (outlined button style)
                 if (scanHistory.isNotEmpty)
                   SizedBox(
                     width: double.infinity,
-                    height: 40,
-                    child: TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: AppTheme.statusError.withValues(
-                          alpha: 0.1,
+                    height: 48,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.statusError,
+                        side: BorderSide(
+                          color: AppTheme.statusError.withValues(alpha: 0.5),
+                          width: 1,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                        shape: const StadiumBorder(),
                       ),
                       onPressed: _clearScanHistory,
-                      child: const Text(
-                        'Clear Scan History',
-                        style: TextStyle(
-                          color: AppTheme.statusError,
-                          fontSize: 14,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.delete_sweep_rounded,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Clear Scan History',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -742,105 +898,194 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 }
 
 class ScannerOverlay extends CustomPainter {
+  final double scanLinePosition;
+  final double pulseScale;
+
+  ScannerOverlay({
+    this.scanLinePosition = 0.5,
+    this.pulseScale = 1.0,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    final double scanAreaWidth = size.width * 0.7;
-    final double scanAreaHeight = size.height * 0.3;
+    final double scanAreaWidth = size.width * 0.75;
+    final double scanAreaHeight = size.height * 0.35;
     final double left = (size.width - scanAreaWidth) / 2;
     final double top = (size.height - scanAreaHeight) / 2;
 
-    // Draw darkened background
-    final backgroundPath = Path()
-      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-    final scanAreaPath = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(left, top, scanAreaWidth, scanAreaHeight),
-          const Radius.circular(12),
-        ),
-      );
-
-    final overlayPath = Path.combine(
-      PathOperation.difference,
-      backgroundPath,
-      scanAreaPath,
+    // Draw semi-transparent overlay (cleaner, less dark)
+    final overlayPaint = Paint()
+      ..color = AppTheme.darkBg.withValues(alpha: 0.6);
+    
+    // Top overlay
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, top),
+      overlayPaint,
+    );
+    // Bottom overlay
+    canvas.drawRect(
+      Rect.fromLTWH(0, top + scanAreaHeight, size.width, size.height - (top + scanAreaHeight)),
+      overlayPaint,
+    );
+    // Left overlay
+    canvas.drawRect(
+      Rect.fromLTWH(0, top, left, scanAreaHeight),
+      overlayPaint,
+    );
+    // Right overlay
+    canvas.drawRect(
+      Rect.fromLTWH(left + scanAreaWidth, top, size.width - (left + scanAreaWidth), scanAreaHeight),
+      overlayPaint,
     );
 
-    canvas.drawPath(
-      overlayPath,
-      Paint()..color = AppTheme.darkBg.withValues(alpha: 0.7),
+    // Animated scanning line
+    final scanLinePaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          AppTheme.primary.withValues(alpha: 0.0),
+          AppTheme.primary.withValues(alpha: 0.9),
+          AppTheme.primary.withValues(alpha: 0.9),
+          AppTheme.primary.withValues(alpha: 0.0),
+        ],
+        stops: const [0.0, 0.45, 0.55, 1.0],
+      ).createShader(Rect.fromLTWH(left, top, scanAreaWidth, 4))
+      ..style = PaintingStyle.fill;
+
+    final scanY = top + (scanAreaHeight * scanLinePosition);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(left, scanY - 2, scanAreaWidth, 4),
+        const Radius.circular(2),
+      ),
+      scanLinePaint,
     );
 
-    // Draw scanning frame
-    final framePaint = Paint()
-      ..color = AppTheme.primary
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(left, top, scanAreaWidth, scanAreaHeight),
-      const Radius.circular(12),
+    // Subtle scan line glow
+    final glowPaint = Paint()
+      ..color = AppTheme.primary.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(left, scanY - 4, scanAreaWidth, 8),
+        const Radius.circular(4),
+      ),
+      glowPaint,
     );
-    canvas.drawRRect(rect, framePaint);
 
-    // Draw corner accents
+    // Simple rounded corner accents (matching app's 24px radius style)
     final cornerPaint = Paint()
       ..color = AppTheme.primary
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
+      ..strokeWidth = 4 * pulseScale
       ..strokeCap = StrokeCap.round;
 
-    const cornerLength = 30.0;
+    final cornerLength = 32.0 * pulseScale;
+    final cornerRadius = 24.0; // Match app card radius
 
     // Top-left corner
     canvas.drawLine(
-      Offset(left, top),
+      Offset(left + cornerRadius, top),
       Offset(left + cornerLength, top),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left, top),
+      Offset(left, top + cornerRadius),
       Offset(left, top + cornerLength),
       cornerPaint,
     );
 
     // Top-right corner
     canvas.drawLine(
-      Offset(left + scanAreaWidth, top),
+      Offset(left + scanAreaWidth - cornerRadius, top),
       Offset(left + scanAreaWidth - cornerLength, top),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + scanAreaWidth, top),
+      Offset(left + scanAreaWidth, top + cornerRadius),
       Offset(left + scanAreaWidth, top + cornerLength),
       cornerPaint,
     );
 
     // Bottom-left corner
     canvas.drawLine(
-      Offset(left, top + scanAreaHeight),
+      Offset(left + cornerRadius, top + scanAreaHeight),
       Offset(left + cornerLength, top + scanAreaHeight),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left, top + scanAreaHeight),
+      Offset(left, top + scanAreaHeight - cornerRadius),
       Offset(left, top + scanAreaHeight - cornerLength),
       cornerPaint,
     );
 
     // Bottom-right corner
     canvas.drawLine(
-      Offset(left + scanAreaWidth, top + scanAreaHeight),
+      Offset(left + scanAreaWidth - cornerRadius, top + scanAreaHeight),
       Offset(left + scanAreaWidth - cornerLength, top + scanAreaHeight),
       cornerPaint,
     );
     canvas.drawLine(
-      Offset(left + scanAreaWidth, top + scanAreaHeight),
+      Offset(left + scanAreaWidth, top + scanAreaHeight - cornerRadius),
       Offset(left + scanAreaWidth, top + scanAreaHeight - cornerLength),
       cornerPaint,
+    );
+
+    // Subtle corner glow (minimal)
+    final glowCornerPaint = Paint()
+      ..color = AppTheme.primary.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+
+    // Apply glow to all corners
+    canvas.drawLine(
+      Offset(left + cornerRadius, top),
+      Offset(left + cornerLength, top),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left, top + cornerRadius),
+      Offset(left, top + cornerLength),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaWidth - cornerRadius, top),
+      Offset(left + scanAreaWidth - cornerLength, top),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaWidth, top + cornerRadius),
+      Offset(left + scanAreaWidth, top + cornerLength),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + cornerRadius, top + scanAreaHeight),
+      Offset(left + cornerLength, top + scanAreaHeight),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left, top + scanAreaHeight - cornerRadius),
+      Offset(left, top + scanAreaHeight - cornerLength),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaWidth - cornerRadius, top + scanAreaHeight),
+      Offset(left + scanAreaWidth - cornerLength, top + scanAreaHeight),
+      glowCornerPaint,
+    );
+    canvas.drawLine(
+      Offset(left + scanAreaWidth, top + scanAreaHeight - cornerRadius),
+      Offset(left + scanAreaWidth, top + scanAreaHeight - cornerLength),
+      glowCornerPaint,
     );
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
+  bool shouldRepaint(ScannerOverlay oldDelegate) {
+    return oldDelegate.scanLinePosition != scanLinePosition ||
+        oldDelegate.pulseScale != pulseScale;
+  }
 }

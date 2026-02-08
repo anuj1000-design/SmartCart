@@ -106,6 +106,14 @@ class SettingsScreen extends StatelessWidget {
               },
             ),
             _InfoTile(
+              icon: Icons.inventory_2_outlined,
+              title: "Inventory Management",
+              value: "Admin",
+              onTap: () {
+                Navigator.pushNamed(context, '/inventory-management');
+              },
+            ),
+            _InfoTile(
               icon: Icons.description_outlined,
               title: "Terms of Service",
               value: "View",

@@ -41,6 +41,16 @@ class _SpendingAnalyticsScreenState extends State<SpendingAnalyticsScreen> {
       appBar: AppBar(
         title: const Text('Spending Analytics'),
         backgroundColor: Colors.transparent,
+        actions: [
+          // Advanced Analytics Button
+          IconButton(
+            icon: const Icon(Icons.analytics_outlined),
+            onPressed: () {
+              Navigator.pushNamed(context, '/analytics-dashboard');
+            },
+            tooltip: 'Advanced Analytics',
+          ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

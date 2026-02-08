@@ -24,6 +24,11 @@ import 'screens/spending_analytics_screen.dart';
 import 'screens/budget_settings_screen.dart';
 import 'screens/notifications_screen.dart';
 import 'screens/report_bug_screen.dart';
+import 'screens/loyalty_program_screen.dart';
+import 'screens/analytics_dashboard_screen.dart';
+import 'screens/multiple_addresses_screen.dart';
+import 'screens/inventory_management_screen.dart';
+import 'screens/support_tickets_screen.dart';
 import 'providers/app_state_provider.dart';
 import 'services/analytics_service.dart';
 import 'services/push_notification_service.dart';
@@ -231,6 +236,11 @@ class _SmartCartAppState extends State<SmartCartApp> {
           '/analytics': (context) => const SpendingAnalyticsScreen(),
           '/budget-settings': (context) => const BudgetSettingsScreen(),
           '/notifications': (context) => const NotificationsScreen(),
+          '/loyalty-program': (context) => const LoyaltyProgramScreen(),
+          '/analytics-dashboard': (context) => const AnalyticsDashboardScreen(),
+          '/multiple-addresses': (context) => const MultipleAddressesScreen(),
+          '/inventory-management': (context) => const InventoryManagementScreen(),
+          '/support-tickets': (context) => const SupportTicketsScreen(),
         },
         onGenerateRoute: (settings) {
           switch (settings.name) {
@@ -264,11 +274,36 @@ class _SmartCartAppState extends State<SmartCartApp> {
                 const NotificationsScreen(),
                 settings,
               );
+            case '/loyalty-program':
+              return _createSlideTransition(
+                const LoyaltyProgramScreen(),
+                settings,
+              );
+            case '/analytics-dashboard':
+              return _createSlideTransition(
+                const AnalyticsDashboardScreen(),
+                settings,
+              );
+            case '/multiple-addresses':
+              return _createSlideTransition(
+                const MultipleAddressesScreen(),
+                settings,
+              );
+            case '/inventory-management':
+              return _createSlideTransition(
+                const InventoryManagementScreen(),
+                settings,
+              );
+            case '/support-tickets':
+              return _createSlideTransition(
+                const SupportTicketsScreen(),
+                settings,
+              );
             default:
               return null;
           }
         },
-          );
+        );
         },
       ),
     );

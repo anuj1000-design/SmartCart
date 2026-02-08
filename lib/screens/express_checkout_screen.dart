@@ -11,6 +11,8 @@ import '../services/payment_service.dart';
 import '../services/pdf_service.dart';
 import '../services/budget_service.dart';
 import '../services/unique_id_service.dart';
+import '../services/loyalty_program_service.dart';
+import '../widgets/scheduled_delivery_widget.dart';
 
 class ExpressCheckoutScreen extends StatefulWidget {
   const ExpressCheckoutScreen({super.key});
@@ -21,9 +23,12 @@ class ExpressCheckoutScreen extends StatefulWidget {
 
 class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
   final PaymentService _paymentService = PaymentService();
+  final LoyaltyProgramService _loyaltyService = LoyaltyProgramService();
   bool _isProcessing = false;
   String? _exitCode;
   Map<String, dynamic>? _receiptData;
+  DateTime? _scheduledDeliveryDate;
+  String? _scheduledDeliverySlot;
 
   @override
   void initState() {
@@ -192,6 +197,8 @@ class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
         'status': 'pending',
         'createdAt': cloud.FieldValue.serverTimestamp(),
         'storeLocation': 'SmartCart Store #001',
+        if (_scheduledDeliveryDate != null) 'scheduledDeliveryDate': _scheduledDeliveryDate,
+        if (_scheduledDeliverySlot != null) 'scheduledDeliverySlot': _scheduledDeliverySlot,
       });
 
       debugPrint(
@@ -218,6 +225,16 @@ class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
     await batch.commit();
 
     debugPrint('📦 Stock updated for ${items.length} products');
+
+    // Award loyalty points for this purchase
+    try {
+      final orderTotal = (receipt['total'] as int);
+      await _loyaltyService.awardPointsForOrder(orderTotal);
+      debugPrint('🎁 Loyalty points awarded for order total: ₹${orderTotal / 100}');
+    } catch (e) {
+      debugPrint('⚠️ Failed to award loyalty points: $e');
+      // Don't fail the order if loyalty points fail
+    }
 
     // Check budget status and show notification if needed
     await _checkBudgetNotification((receipt['total'] as int) / 100);
@@ -798,6 +815,18 @@ class _ExpressCheckoutScreenState extends State<ExpressCheckoutScreen> {
                               ),
                             ],
                           ),
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Scheduled Delivery Widget
+                        ScheduledDeliveryWidget(
+                          onDeliverySelected: (date, slot) {
+                            setState(() {
+                              _scheduledDeliveryDate = date;
+                              _scheduledDeliverySlot = slot;
+                            });
+                          },
                         ),
 
                         const SizedBox(height: 24),

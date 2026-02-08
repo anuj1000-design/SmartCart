@@ -9,6 +9,8 @@ import 'order_history_screen.dart';
 import 'payment_methods_screen.dart';
 import 'shipping_address_screen.dart';
 import 'settings_screen.dart';
+import 'loyalty_program_screen.dart';
+import 'support_tickets_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -113,6 +115,28 @@ class ProfileScreen extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (c) => ShippingAddressScreen()),
+                  );
+                },
+              ),
+              _buildProfileOption(
+                context,
+                Icons.stars,
+                "Loyalty Program",
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (c) => const LoyaltyProgramScreen()),
+                  );
+                },
+              ),
+              _buildProfileOption(
+                context,
+                Icons.support_agent,
+                "Support Tickets",
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (c) => const SupportTicketsScreen()),
                   );
                 },
               ),

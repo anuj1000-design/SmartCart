@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class PushNotificationService {
   static final PushNotificationService _instance = PushNotificationService._internal();
@@ -25,14 +26,14 @@ class PushNotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('✅ Notification permission granted');
+      debugPrint('✅ Notification permission granted');
     } else {
-      print('❌ Notification permission denied');
+      debugPrint('❌ Notification permission denied');
       return;
     }
 
     // Initialize local notifications
-    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/launcher_icon');
     const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -48,14 +49,14 @@ class PushNotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle notification tap
-        print('Notification tapped: ${response.payload}');
+        debugPrint('Notification tapped: ${response.payload}');
       },
     );
 
     // Get FCM token
     String? token = await _messaging.getToken();
     if (token != null) {
-      print('📱 FCM Token: $token');
+      debugPrint('📱 FCM Token: $token');
       await _saveTokenToFirestore(token);
     }
 
@@ -84,12 +85,12 @@ class PushNotificationService {
         'fcmToken': token,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
       });
-      print('✅ FCM token saved to Firestore');
+      debugPrint('✅ FCM token saved to Firestore');
     }
   }
 
   void _handleForegroundMessage(RemoteMessage message) {
-    print('📬 Foreground message: ${message.notification?.title}');
+    debugPrint('📬 Foreground message: ${message.notification?.title}');
     
     if (message.notification != null) {
       _showLocalNotification(
@@ -101,7 +102,7 @@ class PushNotificationService {
   }
 
   void _handleNotificationTap(RemoteMessage message) {
-    print('🔔 Notification tapped: ${message.data}');
+    debugPrint('🔔 Notification tapped: ${message.data}');
     // Navigate to specific screen based on message data
     // You can implement navigation logic here
   }
@@ -155,7 +156,7 @@ class PushNotificationService {
       
       final fcmToken = userDoc.data()?['fcmToken'];
       if (fcmToken == null) {
-        print('❌ User has no FCM token');
+        debugPrint('❌ User has no FCM token');
         return;
       }
 
@@ -170,9 +171,9 @@ class PushNotificationService {
         'sent': false,
       });
 
-      print('✅ Notification queued for sending');
+      debugPrint('✅ Notification queued for sending');
     } catch (e) {
-      print('❌ Error sending notification: $e');
+      debugPrint('❌ Error sending notification: $e');
     }
   }
 
@@ -197,5 +198,5 @@ class PushNotificationService {
 // Top-level function for background message handling
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('📬 Background message: ${message.notification?.title}');
+  debugPrint('📬 Background message: ${message.notification?.title}');
 }

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '../models/models.dart';
 
 class OrderTrackingScreen extends StatefulWidget {
   final String orderId;
 
-  const OrderTrackingScreen({Key? key, required this.orderId}) : super(key: key);
+  const OrderTrackingScreen({super.key, required this.orderId});
 
   @override
   State<OrderTrackingScreen> createState() => _OrderTrackingScreenState();
@@ -37,7 +36,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
             userId: data['userId'] ?? '',
             userName: data['userName'] ?? '',
             userEmail: data['userEmail'] ?? '',
-            products: (data['products'] as List?)?.map((p) => CartProduct.fromMap(p)).toList() ?? [],
+            products: (data['items'] as List?)?.cast<Map<String, dynamic>>() ?? [],
             total: data['total'] ?? 0,
             timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
             address: data['address'] ?? '',
@@ -51,10 +50,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
         });
       }
     } catch (e) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading order: $e')),
-      );
+      if (mounted) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading order: $e')),
+        );
+      }
     }
   }
 
@@ -155,7 +156,7 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                         ),
                         Chip(
                           label: Text(_getStatusText(_order!.status)),
-                          backgroundColor: _getStatusColor(_order!.status, true).withOpacity(0.2),
+                          backgroundColor: _getStatusColor(_order!.status, true).withValues(alpha: 0.2),
                           labelStyle: TextStyle(color: _getStatusColor(_order!.status, true)),
                         ),
                       ],
@@ -343,19 +344,16 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: _order!.products.length,
-                      separatorBuilder: (_, __) => const Divider(),
+                      separatorBuilder: (context, index) => const Divider(),
                       itemBuilder: (context, index) {
                         final item = _order!.products[index];
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: Text(
-                            item.imageEmoji,
-                            style: const TextStyle(fontSize: 32),
-                          ),
-                          title: Text(item.name),
-                          subtitle: Text('Qty: ${item.quantity}'),
+                          leading: const Icon(Icons.shopping_bag, size: 32),
+                          title: Text(item['productName']?.toString() ?? 'Product'),
+                          subtitle: Text('Qty: ${item['quantity']?.toString() ?? '0'}'),
                           trailing: Text(
-                            '₹${((item.price * item.quantity) / 100).toStringAsFixed(2)}',
+                            '₹${(((item['price'] ?? 0) * (item['quantity'] ?? 0)) / 100).toStringAsFixed(2)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         );
@@ -378,7 +376,7 @@ class OrderData {
   final String userId;
   final String userName;
   final String userEmail;
-  final List<CartProduct> products;
+  final List<Map<String, dynamic>> products;
   final int total;
   final DateTime timestamp;
   final String address;

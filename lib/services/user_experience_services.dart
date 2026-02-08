@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter/foundation.dart';
 
 class ShareService {
   static final ShareService _instance = ShareService._internal();
@@ -80,9 +81,9 @@ class SupportTicketService {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      print('✅ Support ticket created');
+      debugPrint('✅ Support ticket created');
     } catch (e) {
-      print('❌ Error creating ticket: $e');
+      debugPrint('❌ Error creating ticket: $e');
       rethrow;
     }
   }

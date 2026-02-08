@@ -4,7 +4,7 @@ import '../services/price_history_service.dart';
 class PriceHistoryWidget extends StatelessWidget {
   final String productId;
 
-  const PriceHistoryWidget({Key? key, required this.productId}) : super(key: key);
+  const PriceHistoryWidget({super.key, required this.productId});
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +163,7 @@ class PriceHistoryWidget extends StatelessWidget {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: history.length > 5 ? 5 : history.length,
-                      separatorBuilder: (_, __) => const Divider(height: 16),
+                      separatorBuilder: (context, index) => const Divider(height: 16),
                       itemBuilder: (context, index) {
                         final entry = history[index];
                         return Row(
@@ -238,9 +238,9 @@ class PriceHistoryWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,7 +313,7 @@ class _SimpleLineChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final fillPaint = Paint()
-      ..color = Colors.blue.withOpacity(0.1)
+      ..color = Colors.blue.withValues(alpha: 0.1)
       ..style = PaintingStyle.fill;
 
     final gridPaint = Paint()

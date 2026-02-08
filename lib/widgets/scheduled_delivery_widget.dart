@@ -6,11 +6,11 @@ class ScheduledDeliveryWidget extends StatefulWidget {
   final String? initialSlot;
 
   const ScheduledDeliveryWidget({
-    Key? key,
+    super.key,
     required this.onDeliverySelected,
     this.initialDate,
     this.initialSlot,
-  }) : super(key: key);
+  });
 
   @override
   State<ScheduledDeliveryWidget> createState() => _ScheduledDeliveryWidgetState();
@@ -60,9 +60,7 @@ class _ScheduledDeliveryWidgetState extends State<ScheduledDeliveryWidget> {
       setState(() {
         _selectedDate = picked;
         // Reset slot when date changes
-        if (_selectedSlot == null) {
-          _selectedSlot = _timeSlots[0];
-        }
+        _selectedSlot ??= _timeSlots[0];
       });
       widget.onDeliverySelected(_selectedDate, _selectedSlot);
     }

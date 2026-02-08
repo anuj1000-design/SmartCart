@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/loyalty_program_service.dart';
 
 class LoyaltyProgramScreen extends StatefulWidget {
-  const LoyaltyProgramScreen({Key? key}) : super(key: key);
+  const LoyaltyProgramScreen({super.key});
 
   @override
   State<LoyaltyProgramScreen> createState() => _LoyaltyProgramScreenState();
@@ -55,7 +55,7 @@ class _LoyaltyProgramScreenState extends State<LoyaltyProgramScreen> {
                 gradient: LinearGradient(
                   colors: [
                     Theme.of(context).primaryColor,
-                    Theme.of(context).primaryColor.withOpacity(0.7),
+                    Theme.of(context).primaryColor.withValues(alpha: 0.7),
                   ],
                 ),
               ),
@@ -211,8 +211,8 @@ class _LoyaltyProgramScreenState extends State<LoyaltyProgramScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: transaction.isEarned
-                                    ? Colors.green.withOpacity(0.1)
-                                    : Colors.orange.withOpacity(0.1),
+                                    ? Colors.green.withValues(alpha: 0.1)
+                                    : Colors.orange.withValues(alpha: 0.1),
                               ),
                               child: Icon(
                                 transaction.isEarned ? Icons.add : Icons.remove,
@@ -308,6 +308,8 @@ class _LoyaltyProgramScreenState extends State<LoyaltyProgramScreen> {
               
               try {
                 final discount = await _loyaltyService.redeemPoints(points);
+                if (!context.mounted) return;
+                
                 Navigator.pop(context);
                 
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -321,6 +323,7 @@ class _LoyaltyProgramScreenState extends State<LoyaltyProgramScreen> {
                 
                 _loadData();
               } catch (e) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Error: $e')),
                 );

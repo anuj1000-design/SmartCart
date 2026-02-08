@@ -9,6 +9,7 @@ import '../providers/app_state_provider.dart';
 import '../services/pdf_service.dart';
 import '../models/models.dart';
 import '../widgets/ui_components.dart';
+import 'order_tracking_screen.dart';
 import '../widgets/staggered_animation.dart';
 
 // Parameters for background filtering
@@ -475,6 +476,18 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
         title: const Text("Order History"),
         backgroundColor: Colors.transparent,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.track_changes_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (c) => const OrderTrackingScreen(orderId: 'latest'),
+                ),
+              );
+            },
+            tooltip: 'Track Latest Order',
+          ),
           IconButton(
             icon: Icon(
               _showFilters ? Icons.filter_alt : Icons.filter_alt_outlined,

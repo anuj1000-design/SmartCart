@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class LoyaltyProgramService {
   static final LoyaltyProgramService _instance = LoyaltyProgramService._internal();
@@ -24,7 +25,7 @@ class LoyaltyProgramService {
       }
       return LoyaltySettings();
     } catch (e) {
-      print('Error getting loyalty settings: $e');
+      debugPrint('Error getting loyalty settings: $e');
       return LoyaltySettings();
     }
   }
@@ -38,7 +39,7 @@ class LoyaltyProgramService {
       final doc = await _firestore.collection('users').doc(userId).get();
       return doc.data()?['loyaltyPoints'] ?? 0;
     } catch (e) {
-      print('Error getting user points: $e');
+      debugPrint('Error getting user points: $e');
       return 0;
     }
   }
@@ -75,9 +76,9 @@ class LoyaltyProgramService {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      print('✅ Awarded $pointsToAward points');
+      debugPrint('✅ Awarded $pointsToAward points');
     } catch (e) {
-      print('❌ Error awarding points: $e');
+      debugPrint('❌ Error awarding points: $e');
     }
   }
 
@@ -115,10 +116,10 @@ class LoyaltyProgramService {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      print('✅ Redeemed $pointsToRedeem points for ₹${(discountValue / 100).toStringAsFixed(2)}');
+      debugPrint('✅ Redeemed $pointsToRedeem points for ₹${(discountValue / 100).toStringAsFixed(2)}');
       return discountValue;
     } catch (e) {
-      print('❌ Error redeeming points: $e');
+      debugPrint('❌ Error awarding points: $e');
       rethrow;
     }
   }
@@ -150,7 +151,7 @@ class LoyaltyProgramService {
         );
       }).toList();
     } catch (e) {
-      print('Error getting transaction history: $e');
+      debugPrint('Error getting transaction history: $e');
       return [];
     }
   }

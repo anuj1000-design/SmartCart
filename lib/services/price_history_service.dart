@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class PriceHistoryService {
   static final PriceHistoryService _instance = PriceHistoryService._internal();
@@ -31,9 +32,9 @@ class PriceHistoryService {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      print('✅ Price history tracked for product $productId');
+      debugPrint('✅ Price history tracked for product $productId');
     } catch (e) {
-      print('❌ Error tracking price history: $e');
+      debugPrint('❌ Error tracking price history: $e');
     }
   }
 
@@ -61,7 +62,7 @@ class PriceHistoryService {
         );
       }).toList();
     } catch (e) {
-      print('❌ Error getting price history: $e');
+      debugPrint('❌ Error getting price history: $e');
       return [];
     }
   }
@@ -125,7 +126,7 @@ class PriceHistoryService {
         savingsPercent: savingsPercent,
       );
     } catch (e) {
-      print('❌ Error getting price summary: $e');
+      debugPrint('❌ Error getting price summary: $e');
       return PriceSummary(
         currentPrice: 0,
         lowestPrice: 0,

@@ -1,9 +1,35 @@
-## Only ignore secrets and local config
-## android/app/google-services.json
+########################################
+# GITIGNORE CONFIGURATION
+########################################
+# INSTRUCTIONS:
+# - ALWAYS PRIVATE: Never commit these files (even on public repo)
+# - CURRENTLY PRIVATE: Only for private repo (uncomment for public)
+# - NOT IGNORED: Safe to commit (placeholders/sanitized versions)
+########################################
+
+# ===== ALWAYS PRIVATE (NEVER COMMIT) =====
+# Security & Credentials - Keep these ignored in ALL repos
 web/firebase_config.js
 .env
-build/
-*.apk
+key.properties
+**/*.keystore
+**/*.jks
+
+# Original admin files with real credentials (keep private always)
+web/SmartLanding.html
+web/SmartAdmin.html
+
+# ===== CURRENTLY PRIVATE (UNCOMMENT FOR PUBLIC REPO) =====
+# Remove ## to ignore these when making repo public:
+## android/app/google-services.json
+## lib/firebase_options.dart
+## releases/
+## structure.txt
+
+# ===== BUILD ARTIFACTS & TEMPORARY FILES =====
+# Standard Flutter/Dart ignores
+## build/
+## *.apk
 gradle-wrapper.jar
 /.gradle
 /captures/
@@ -11,15 +37,22 @@ gradle-wrapper.jar
 GeneratedPluginRegistrant.java
 .cxx/
 /build
-## Remember to never publicly share your keystore.
-## See https://flutter.dev/to/reference-keystore
-key.properties
-**/*.keystore
-**/*.jks
-## lib/firebase_options.dart
 pubspec.lock
 .dart_tool/
 .firebase/
 .vscode/.flutter-plugins
 .flutter-plugins-dependencies
 .packages
+
+# NPM artifacts (temporary, not needed for Flutter project)
+node_modules/
+package.json
+package-lock.json
+
+# ===== NOT IGNORED (SAFE TO COMMIT) =====
+# These files are safe - they contain placeholder data:
+# - web/Smart_Admin.html (sanitized copy)
+# - web/Smart_Landing.html (sanitized copy)
+# - web/index.html (keep if public, comment above to hide)
+# - pubspec.yaml
+# - All Dart source files

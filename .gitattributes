@@ -1,0 +1,8 @@
+# GitHub Language Statistics Configuration
+# Exclude large admin HTML files from language detection
+web/*.html linguist-documentation
+web/*.css linguist-documentation
+web/*.js linguist-documentation
+
+# Mark Flutter/Dart as the primary language
+*.dart linguist-language=Dart

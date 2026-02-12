@@ -20,8 +20,6 @@ android/app/google-services.json
 firestore.rules
 
 # Original admin files with real credentials (keep private always)
-web/index.html
-web/admin.html
 web/SmartLanding.html
 web/SmartAdmin.html
 SmartCart.md

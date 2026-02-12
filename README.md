@@ -1,3 +1,12 @@
+```
+ ██████╗███╗   ███╗ █████╗ ██████╗ ████████╗ ██████╗ █████╗ ██████╗ ████████╗
+██╔════╝████╗ ████║██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗██╔══██╗╚══██╔══╝
+╚█████╗ ██╔████╔██║███████║██████╔╝   ██║   ██║     ███████║██████╔╝   ██║   
+ ╚═══██╗██║╚██╔╝██║██╔══██║██╔══██╗   ██║   ██║     ██╔══██║██╔══██╗   ██║   
+██████╔╝██║ ╚═╝ ██║██║  ██║██║  ██║   ██║   ╚██████╗██║  ██║██║  ██║   ██║   
+╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
+```
+
 # SmartCart
 
 SmartCart is a Flutter-based self-checkout platform for grocery retailers. The mobile app handles scanning, carting, and payments; the web admin dashboard manages inventory, orders, users, and analytics. Backend is powered by Firebase.

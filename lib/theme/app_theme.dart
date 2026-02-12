@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 // ---------------------------------------------------------------------------
-// 🎨 SMARTCART425 THEME - MATCHES WEBSITE DESIGN
+// 🎨 SMARTCART THEME - MATCHES WEBSITE DESIGN
 // ---------------------------------------------------------------------------
 
 class AppTheme {

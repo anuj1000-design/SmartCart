@@ -178,7 +178,7 @@ class _SmartCartAppState extends State<SmartCartApp> {
         builder: (context, appState, child) {
           return MaterialApp(
             navigatorKey: navigatorKey,
-            title: 'SmartCart425',
+            title: 'SmartCart',
             debugShowCheckedModeBanner: false,
             theme: appState.isDarkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
             builder: (context, child) {

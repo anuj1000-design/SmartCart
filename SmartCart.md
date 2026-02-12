@@ -1,4 +1,4 @@
-# SmartCart425 - Complete Technical Documentation
+# SmartCart - Complete Technical Documentation
 
 > **SmartCart** is a production-ready, enterprise-grade Flutter-powered self-checkout platform designed for modern grocery retailers. It combines a feature-rich mobile application with a sophisticated web administration dashboard, all backed by Firebase's robust cloud infrastructure.
 
@@ -484,7 +484,7 @@ void addToCart(Product product) {
 // 1. Generate UPI deep link
 String upiLink = PaymentService.generateUpiLink(
   upiId: 'merchant@upi',
-  payeeName: 'SmartCart425',
+  payeeName: 'SmartCart',
   amount: cartTotal / 100.0, // Convert paise to rupees
   transactionRef: orderId,
   description: 'SmartCart Order #$orderId',
@@ -513,7 +513,7 @@ Navigator.push(
 
 **UPI Deep Link Format**:
 ```
-upi://pay?pa=merchant@upi&pn=SmartCart425&am=150.00&cu=INR&tr=ORDER123&tn=SmartCart+Order
+upi://pay?pa=merchant@upi&pn=SmartCart&am=150.00&cu=INR&tr=ORDER123&tn=SmartCart+Order
 ```
 
 **Parameters**:
@@ -845,7 +845,7 @@ Future<File> generateReceipt(Order order) async {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             // Header
-            pw.Text('SmartCart425', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            pw.Text('SmartCart', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
             pw.Text('Receipt', style: pw.TextStyle(fontSize: 18)),
             pw.Divider(),
             
@@ -3523,7 +3523,7 @@ git push origin v1.0.0
 
 **© 2026 Shreyas Sanjay Pawar. All Rights Reserved.**
 
-This software, **"SmartCart425,"** is the proprietary intellectual property of 
+This software, **"SmartCart,"** is the proprietary intellectual property of 
 Shreyas Sanjay Pawar. Unauthorized copying, distribution, modification, or 
 commercial use is strictly prohibited.
 

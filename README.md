@@ -10,6 +10,146 @@
 
 SmartCart is a Flutter-based self-checkout platform for grocery retailers. The mobile app handles scanning, carting, and payments; the web admin dashboard manages inventory, orders, users, and analytics. Backend is powered by Firebase.
 
+## Workflow Diagram
+
+```mermaid
+graph TD
+    %% SmartCart Comprehensive Workflow Diagram
+    
+    subgraph "App Launch & Authentication"
+        START([App Launch]) --> AUTH{Authenticated?}
+        AUTH -->|No| ONBOARD[Onboarding]
+        ONBOARD --> LOGIN[Login<br/>Google OAuth]
+        LOGIN --> AUTH_SUCCESS{Login Success?}
+        AUTH_SUCCESS -->|No| LOGIN
+        AUTH_SUCCESS -->|Yes| ROLE_CHECK{User Role?}
+    end
+    
+    subgraph "Customer Journey"
+        ROLE_CHECK -->|Customer| HOME[Home Screen<br/>Bottom Navigation]
+        
+        HOME --> STORE[Browse Store<br/>Products Grid]
+        HOME --> CART[Shopping Cart<br/>Items Management]
+        HOME --> PROFILE[User Profile<br/>Settings & Info]
+        HOME --> ANALYTICS[Spending Analytics<br/>Budget Tracking]
+        
+        STORE --> SEARCH[Search Products<br/>Text + Voice]
+        STORE --> SCAN[Barcode Scanner<br/>Camera Integration]
+        SCAN --> SCAN_RESULT{Product Found?}
+        SCAN_RESULT -->|Yes| ADD_TO_CART[Add to Cart<br/>Stock Validation]
+        SCAN_RESULT -->|No| SCAN_RETRY[Retry Scan<br/>Error Feedback]
+        ADD_TO_CART --> CART
+        
+        CART --> MODIFY_CART[Edit Cart<br/>Qty/Remove Items]
+        MODIFY_CART --> CHECKOUT[Checkout Process<br/>Order Summary]
+        CHECKOUT --> PAYMENT_SELECT[Payment Method<br/>UPI/COD/Card]
+        PAYMENT_SELECT --> PROCESS_PAYMENT[Payment Processing<br/>Secure Transaction]
+        PROCESS_PAYMENT --> PAYMENT_STATUS{Payment Status}
+        PAYMENT_STATUS -->|Success| ORDER_CREATED[Order Created<br/>Order ID Generated]
+        PAYMENT_STATUS -->|Failed| PAYMENT_RETRY[Retry Payment<br/>Error Handling]
+        
+        ORDER_CREATED --> ORDER_TRACKING[Order Tracking<br/>Real-time Status]
+        ORDER_TRACKING --> ORDER_HISTORY[Order History<br/>Past Purchases]
+        
+        PROFILE --> EDIT_INFO[Edit Personal Info<br/>Name/Address/Phone]
+        PROFILE --> PAYMENT_METHODS[Saved Payment Methods<br/>Cards Management]
+        PROFILE --> SHIPPING_ADDR[Shipping Addresses<br/>Multiple Locations]
+        PROFILE --> LOYALTY_PROG[Loyalty Program<br/>Points & Rewards]
+        PROFILE --> APP_SETTINGS[App Settings<br/>Theme/Notifications]
+        
+        HOME --> NOTIFICATIONS[Notifications<br/>In-app Messages]
+        HOME --> FEEDBACK[Submit Feedback<br/>Rate Experience]
+        HOME --> REPORT_BUG[Report Issues<br/>Bug Tracking]
+    end
+    
+    subgraph "Admin Dashboard (Web)"
+        ROLE_CHECK -->|Admin| ADMIN_DASH[Admin Dashboard<br/>Statistics Overview]
+        
+        ADMIN_DASH --> PROD_MGMT[Product Management<br/>Inventory Control]
+        ADMIN_DASH --> ORDER_MGMT[Order Management<br/>Fulfillment]
+        ADMIN_DASH --> USER_MGMT[User Management<br/>Account Control]
+        ADMIN_DASH --> NOTIFY_USERS[Send Notifications<br/>Broadcast Messages]
+        ADMIN_DASH --> VIEW_FEEDBACK[Customer Feedback<br/>Reviews & Ratings]
+        ADMIN_DASH --> BUG_MGMT[Bug Reports<br/>Issue Resolution]
+        ADMIN_DASH --> BUSINESS_ANALYTICS[Analytics Dashboard<br/>Performance Metrics]
+        
+        PROD_MGMT --> ADD_PRODUCT[Add New Product<br/>Details/Barcode/Stock]
+        PROD_MGMT --> EDIT_PRODUCT[Edit Product Info<br/>Update Details]
+        PROD_MGMT --> DELETE_PRODUCT[Remove Product<br/>Archive/Confirm]
+        PROD_MGMT --> BULK_IMPORT[Import/Export CSV<br/>Bulk Operations]
+        
+        ORDER_MGMT --> VIEW_ALL_ORDERS[View All Orders<br/>Filter/Search]
+        VIEW_ALL_ORDERS --> UPDATE_ORDER_STATUS[Update Status<br/>Processing → Delivered]
+        UPDATE_ORDER_STATUS --> NOTIFY_CUSTOMER[Notify Customer<br/>Status Updates]
+        
+        USER_MGMT --> VIEW_USERS[List All Users<br/>Account Details]
+        VIEW_USERS --> MODIFY_USER_ACCESS[Change User Roles<br/>Admin/Customer]
+        MODIFY_USER_ACCESS --> SUSPEND_ACCOUNT[Suspend/Restore<br/>Account Control]
+        
+        NOTIFY_USERS --> CREATE_MESSAGE[Compose Message<br/>Target Selection]
+        CREATE_MESSAGE --> SEND_BROADCAST[Send Broadcast<br/>Firebase Messaging]
+        SEND_BROADCAST --> TRACK_DELIVERY[Track Delivery<br/>Success Metrics]
+    end
+    
+    subgraph "Firebase Backend Services"
+        FIREBASE[(Firebase Ecosystem)]
+        
+        FIREBASE --> AUTH[Firebase Auth<br/>Google OAuth<br/>User Management]
+        FIREBASE --> FIRESTORE[(Firestore DB<br/>Real-time Sync<br/>Offline Support)]
+        FIREBASE --> MESSAGING[Firebase Messaging<br/>Push Notifications<br/>In-app Alerts]
+        FIREBASE --> ANALYTICS[Firebase Analytics<br/>User Behavior<br/>Event Tracking]
+        FIREBASE --> CRASHLYTICS[Crashlytics<br/>Error Reporting<br/>Crash Monitoring]
+        
+        AUTH --> ROLE_CHECK
+        FIRESTORE --> ADD_TO_CART
+        FIRESTORE --> ORDER_CREATED
+        FIRESTORE --> EDIT_INFO
+        FIRESTORE --> PROD_MGMT
+        FIRESTORE --> ORDER_MGMT
+        FIRESTORE --> USER_MGMT
+        MESSAGING --> NOTIFICATIONS
+        MESSAGING --> SEND_BROADCAST
+        ANALYTICS --> ANALYTICS
+        ANALYTICS --> BUSINESS_ANALYTICS
+        CRASHLYTICS --> REPORT_BUG
+    end
+    
+    subgraph "Security & Data Protection"
+        SECURITY[Security Rules<br/>Role-based Access<br/>Data Isolation]
+        SECURITY --> FIRESTORE
+        SECURITY --> AUTH
+        
+        ENCRYPTION[Data Encryption<br/>Secure Transmission<br/>Privacy Protection]
+        ENCRYPTION --> FIRESTORE
+        ENCRYPTION --> MESSAGING
+    end
+    
+    %% Flow connections
+    ORDER_HISTORY --> HOME
+    ANALYTICS --> HOME
+    NOTIFICATIONS --> HOME
+    PROFILE --> HOME
+    BUSINESS_ANALYTICS --> ADMIN_DASH
+    BUG_MGMT --> ADMIN_DASH
+    VIEW_FEEDBACK --> ADMIN_DASH
+    
+    %% Styling for better visualization
+    classDef startNode fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px
+    classDef authNode fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    classDef customerNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef adminNode fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef backendNode fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    classDef securityNode fill:#ffebee,stroke:#c62828,stroke-width:2px
+    classDef decisionNode fill:#fce4ec,stroke:#ad1457,stroke-width:2px
+    
+    class START startNode
+    class AUTH,AUTH_SUCCESS,ROLE_CHECK,SCAN_RESULT,PAYMENT_STATUS decisionNode
+    class ONBOARD,LOGIN,HOME,STORE,CART,PROFILE,ANALYTICS,SEARCH,SCAN,ADD_TO_CART,MODIFY_CART,CHECKOUT,PAYMENT_SELECT,PROCESS_PAYMENT,ORDER_CREATED,ORDER_TRACKING,ORDER_HISTORY,EDIT_INFO,PAYMENT_METHODS,SHIPPING_ADDR,LOYALTY_PROG,APP_SETTINGS,NOTIFICATIONS,FEEDBACK,REPORT_BUG customerNode
+    class ADMIN_DASH,PROD_MGMT,ORDER_MGMT,USER_MGMT,NOTIFY_USERS,VIEW_FEEDBACK,BUG_MGMT,BUSINESS_ANALYTICS,ADD_PRODUCT,EDIT_PRODUCT,DELETE_PRODUCT,BULK_IMPORT,VIEW_ALL_ORDERS,UPDATE_ORDER_STATUS,NOTIFY_CUSTOMER,VIEW_USERS,MODIFY_USER_ACCESS,SUSPEND_ACCOUNT,CREATE_MESSAGE,SEND_BROADCAST,TRACK_DELIVERY adminNode
+    class FIREBASE,FIRESTORE,AUTH,MESSAGING,ANALYTICS,CRASHLYTICS backendNode
+    class SECURITY,ENCRYPTION securityNode
+```
+
 ## Highlights
 - Mobile app: barcode scanning, stock-aware cart, voice/haptics, dark UI
 - Admin web: product/order/user management, notifications, analytics

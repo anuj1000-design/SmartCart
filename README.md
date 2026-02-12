@@ -125,7 +125,7 @@ Proprietary. All rights reserved.
 6. Deploy web: `firebase deploy --only hosting`
 
 **Admin Panel Access:**
-- URL: https://your-project.web.app
+- URL: https://shrs425.web.app
 - Sign in with whitelisted Google account
 - Non-admin accounts show "Access Denied" message
 - Real-time data synchronization without page refresh

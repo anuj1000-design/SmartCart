@@ -25,7 +25,8 @@ web/SmartAdmin.html
 
 # ===== CURRENTLY PRIVATE (UNCOMMENT FOR PUBLIC REPO) =====
 # Remove ## to ignore these when making repo public:
-## releases/
+releases/*
+!releases/BUILD_INFO.txt
 ## structure.txt
 
 # ===== BUILD ARTIFACTS & TEMPORARY FILES =====

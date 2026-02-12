@@ -22,8 +22,6 @@ firestore.rules
 # Original admin files with real credentials (keep private always)
 web/SmartLanding.html
 web/SmartAdmin.html
-SmartCart.md
-README.md
 
 # ===== CURRENTLY PRIVATE (UNCOMMENT FOR PUBLIC REPO) =====
 # Remove ## to ignore these when making repo public:

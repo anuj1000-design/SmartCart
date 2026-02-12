@@ -43,6 +43,8 @@ pubspec.lock
 .vscode/.flutter-plugins
 .flutter-plugins-dependencies
 .packages
+structure.txt
+
 
 # NPM artifacts (temporary, not needed for Flutter project)
 node_modules/

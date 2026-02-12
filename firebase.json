@@ -24,11 +24,11 @@
     "rewrites": [
       {
         "source": "/admin",
-        "destination": "/admin.html"
+        "destination": "/Smart_Admin.html"
       },
       {
         "source": "**",
-        "destination": "/index.html"
+        "destination": "/Smart_Landing.html"
       }
     ]
   },

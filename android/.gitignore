@@ -20,6 +20,8 @@ android/app/google-services.json
 firestore.rules
 
 # Original admin files with real credentials (keep private always)
+web/index.html
+web/admin.html
 web/SmartLanding.html
 web/SmartAdmin.html
 SmartCart.md
@@ -47,10 +49,6 @@ pubspec.lock
 .vscode/.flutter-plugins
 .flutter-plugins-dependencies
 .packages
-structure.txt
-web/SmartAdmin.html
-web/SmartLanding.html
-
 
 # NPM artifacts (temporary, not needed for Flutter project)
 node_modules/
@@ -59,8 +57,8 @@ package-lock.json
 
 # ===== NOT IGNORED (SAFE TO COMMIT) =====
 # These files are safe - they contain placeholder data:
-# - web/Smart_Admin.html (sanitized copy)
-# - web/Smart_Landing.html (sanitized copy)
+# - web/Smart_Admin.html (sanitized admin panel - used by Firebase /admin route)
+# - web/Smart_Landing.html (sanitized landing page - used by Firebase default route)
 # - lib/firebase_options_example.dart (template with placeholders)
 # - android/app/google-services.json.example (template with placeholders)
 # - .firebaserc.example (template with placeholders)

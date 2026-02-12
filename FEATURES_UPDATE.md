@@ -192,7 +192,7 @@ New collections secured:
 All features deployed successfully:
 
 1. ✅ **Firestore Rules**: Deployed
-2. ✅ **Admin Panel**: Deployed to https://shrs425.web.app
+2. ✅ **Admin Panel**: Deployed to https://your-project.web.app
 3. ✅ **Mobile App**: Code ready (hot reload to apply changes)
 
 ---

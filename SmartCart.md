@@ -3515,9 +3515,9 @@ git push origin v1.0.0
 
 ### Support and Contact
 - **GitHub Repository**: https://github.com/yourusername/SmartCart
-- **Firebase Project**: smartcart425
-- **Web Dashboard**: https://smartcart425.web.app/admin.html
-- **Landing Page**: https://smartcart425.web.app
+- **Firebase Project**: your-project-id
+- **Web Dashboard**: https://your-project.web.app/admin
+- **Landing Page**: https://your-project.web.app
 
 ### ⚠️ License
 

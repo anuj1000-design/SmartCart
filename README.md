@@ -146,10 +146,13 @@ Proprietary. All rights reserved.
 - **And Many More
 
 ### Support and Contact
-- **GitHub Repository**: https://github.com/yourusername/SmartCart
-- **Firebase Project**: your-project-id
-- **Web Dashboard**: https://your-project.web.app/admin
-- **Landing Page**: https://your-project.web.app
+- **GitHub Repository**: https://github.com/shrs425p/SmartCart
+- **Issues & Bug Reports**: https://github.com/shrs425p/SmartCart/issues
+- **Discussions**: https://github.com/shrs425p/SmartCart/discussions
+- **Email**: en24309314@git.india.edu.in
+- **Institution**: Gharda Institute of Technology
+
+*Note: For Firebase configuration and deployment setup, refer to the example files in the repository.*
 
 ### ⚠️ License
 

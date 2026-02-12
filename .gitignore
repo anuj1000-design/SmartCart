@@ -44,6 +44,8 @@ pubspec.lock
 .flutter-plugins-dependencies
 .packages
 structure.txt
+web/SmartAdmin.html
+web/SmartLanding.html
 
 
 # NPM artifacts (temporary, not needed for Flutter project)
@@ -55,6 +57,5 @@ package-lock.json
 # These files are safe - they contain placeholder data:
 # - web/Smart_Admin.html (sanitized copy)
 # - web/Smart_Landing.html (sanitized copy)
-# - web/index.html (keep if public, comment above to hide)
 # - pubspec.yaml
 # - All Dart source files

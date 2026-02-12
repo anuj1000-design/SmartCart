@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "SmartCart": "your-project-id"
+  },
+  "targets": {
+    "your-project-id": {
+      "hosting": {
+        "admin": [
+          "your-project-id"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

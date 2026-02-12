@@ -16,10 +16,14 @@ key.properties
 **/*.jks
 lib/firebase_options.dart
 android/app/google-services.json
+.firebaserc
+firestore.rules
 
 # Original admin files with real credentials (keep private always)
 web/SmartLanding.html
 web/SmartAdmin.html
+SmartCart.md
+README.md
 
 # ===== CURRENTLY PRIVATE (UNCOMMENT FOR PUBLIC REPO) =====
 # Remove ## to ignore these when making repo public:
@@ -59,5 +63,8 @@ package-lock.json
 # - web/Smart_Landing.html (sanitized copy)
 # - lib/firebase_options_example.dart (template with placeholders)
 # - android/app/google-services.json.example (template with placeholders)
+# - .firebaserc.example (template with placeholders)
+# - firestore.rules.example (template with placeholders)
 # - pubspec.yaml
 # - All Dart source files
+# Note: Edit SmartCart.md and README.md directly when going public

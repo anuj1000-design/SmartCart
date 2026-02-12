@@ -33,7 +33,7 @@ web/SmartAdmin.html
 ## build/
 ## *.apk
 gradle-wrapper.jar
-/.gradle
+.gradle/
 /captures/
 /local.properties
 GeneratedPluginRegistrant.java

@@ -158,16 +158,15 @@ Proprietary. All rights reserved.
 
 **© 2026 Shreyas Sanjay Pawar. All Rights Reserved.**
 
-This software, **"SmartCart425,"** is the proprietary intellectual property of 
+This software, **"SmartCart,"** is the proprietary intellectual property of 
 Shreyas Sanjay Pawar. Unauthorized copying, distribution, modification, or 
 commercial use is strictly prohibited.
 
 **This project is developed for educational purposes at Gharda Institute of Technology.**
 
 **For licensing inquiries or permission requests, contact:**
-- **Email**: your-email@example.com
+- **Email**: en24309314@git.india.edu.in
 - **Institution**: Gharda Institute of Technology
-- **Student ID**: en24309314@git.india.edu.in
 
 **Note**: This is a proprietary license, not an open-source license like MIT, Apache, or GPL.
 

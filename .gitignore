@@ -51,6 +51,31 @@ pubspec.lock
 node_modules/
 package.json
 package-lock.json
+android/ndk
+android/sdk
+flutter/
+
+# OS generated files
+Thumbs.db
+.DS_Store
+._*
+
+# IDE files
+.idea/
+*.swp
+*.suo
+
+# Logs
+*.log
+logs/
+
+# Coverage reports
+coverage/
+
+# Temporary files
+*.tmp
+*.bak
+*.temp
 
 # ===== NOT IGNORED (SAFE TO COMMIT) =====
 # These files are safe - they contain placeholder data:

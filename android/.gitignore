@@ -88,3 +88,6 @@ coverage/
 # - pubspec.yaml
 # - All Dart source files
 # Note: Edit SmartCart.md and README.md directly when going public
+
+# Local Flutter SDK
+flutter_sdk/

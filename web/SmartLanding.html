@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>SmartCart Admin Login</title>
+    <title>SmartCart425 Admin-login</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="icons/favicon.png">
@@ -28,6 +28,9 @@
     
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    
+    <!-- Config -->
+    <script src="Config.js"></script>
     
     <script>
         tailwind.config = {
@@ -1312,21 +1315,11 @@
         }
 
         // Whitelist - Logic Preserved
-        const ALLOWED_EMAILS = ['admin@example.com', 'user@example.com'];
-        // Normalize whitelist for case-insensitive checks
-        const ALLOWED_EMAILS_LOWER = ALLOWED_EMAILS.map(e => e.toLowerCase());
+        const ALLOWED_EMAILS = window.ALLOWED_EMAILS;
+        const ALLOWED_EMAILS_LOWER = window.ALLOWED_EMAILS_LOWER;
         
-        // Firebase Config - prefer external config if provided (web/firebase_config.js)
-        // NOTE: Do not store production API keys in source. Provide a gitignored `web/firebase_config.js` (see `web/firebase_config.js.example`) and restrict the API key in Google Cloud Console.
-        const firebaseConfig = window.__FIREBASE_CONFIG || {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT.firebasestorage.app",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
-        // If you see this placeholder in production, replace it by creating `web/firebase_config.js` and restrict/rotate the key immediately.
+        // Firebase Config
+        const firebaseConfig = window.__FIREBASE_CONFIG;
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();

@@ -19,9 +19,8 @@ android/app/google-services.json
 .firebaserc
 firestore.rules
 
-# Original admin files with real credentials (keep private always)
-web/SmartLanding.html
-web/SmartAdmin.html
+# Config.js now holds the credentials (keep private)
+web/Config.js
 
 # ===== CURRENTLY PRIVATE (UNCOMMENT FOR PUBLIC REPO) =====
 # Remove ## to ignore these when making repo public:

@@ -23,12 +23,16 @@
     ],
     "rewrites": [
       {
-        "source": "/admin",
-        "destination": "/Smart_Admin.html"
+        "source": "/SmartLanding",
+        "destination": "/SmartLanding.html"
+      },
+      {
+        "source": "/SmartAdmin",
+        "destination": "/SmartAdmin.html"
       },
       {
         "source": "**",
-        "destination": "/Smart_Landing.html"
+        "destination": "/SmartLanding.html"
       }
     ]
   },

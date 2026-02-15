@@ -12,6 +12,7 @@ android {
     namespace = "com.shrs.smartcart"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+    ndkPath = "C:/Users/pawar/Desktop/Shrs/SmartCart/android/ndk/28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -1,0 +1,38 @@
+﻿[ÔêÜ] Flutter (Channel stable, 3.41.1, on Microsoft Windows [Version 10.0.26220.7344], locale en-IN) [439ms]
+    ÔÇó Flutter version 3.41.1 on channel stable at C:\flutter
+    ÔÇó Upstream repository https://github.com/flutter/flutter.git
+    ÔÇó Framework revision 582a0e7c55 (2 days ago), 2026-02-12 17:12:32 -0800
+    ÔÇó Engine revision 3452d735bd
+    ÔÇó Dart version 3.11.0
+    ÔÇó DevTools version 2.54.1
+    ÔÇó Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations, enable-native-assets, omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration
+
+[ÔêÜ] Windows Version (Windows 11 or higher, 25H2, 2009) [2.3s]
+
+[ÔêÜ] Android toolchain - develop for Android devices (Android SDK version 36.1.0) [5.1s]
+    ÔÇó Android SDK at C:\Users\pawar\AppData\Local\Android\sdk
+    ÔÇó Emulator version 36.4.9.0 (build_id 14788078) (CL:N/A)
+    ÔÇó Platform android-36.1, build-tools 36.1.0
+    ÔÇó Java binary at: C:\Program Files\Android\Android Studio\jbr\bin\java
+      This is the JDK bundled with the latest Android Studio installation on this machine.
+      To manually set the JDK path, use: `flutter config --jdk-dir="path/to/jdk"`.
+    ÔÇó Java version OpenJDK Runtime Environment (build 21.0.9+-14649483-b1163.86)
+    ÔÇó All Android licenses accepted.
+
+[X] Chrome - develop for the web (Cannot find Chrome executable at .\Google\Chrome\Application\chrome.exe) [24ms]
+    ! Cannot find Chrome. Try setting CHROME_EXECUTABLE to a Chrome executable.
+
+[X] Visual Studio - develop Windows apps [21ms]
+    X Visual Studio not installed; this is necessary to develop Windows apps.
+      Download at https://visualstudio.microsoft.com/downloads/.
+      Please install the "Desktop development with C++" workload, including all of its default components
+
+[ÔêÜ] Connected device (3 available) [726ms]
+    ÔÇó sdk gphone64 x86 64 (mobile) ÔÇó emulator-5554 ÔÇó android-x64    ÔÇó Android 16 (API 36) (emulator)
+    ÔÇó Windows (desktop)            ÔÇó windows       ÔÇó windows-x64    ÔÇó Microsoft Windows [Version 10.0.26220.7344]
+    ÔÇó Edge (web)                   ÔÇó edge          ÔÇó web-javascript ÔÇó Microsoft Edge 144.0.3719.115
+
+[ÔêÜ] Network resources [3.7s]
+    ÔÇó All expected network resources are available.
+
+! Doctor found issues in 2 categories.

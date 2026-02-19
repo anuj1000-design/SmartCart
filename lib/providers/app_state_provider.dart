@@ -339,6 +339,7 @@ class AppStateProvider extends ChangeNotifier {
     phone: "+1 234 567 8900",
     avatarEmoji: "👤",
     photoURL: null,
+    role: "customer",
   );
 
   UserProfile get userProfile => _userProfile;
@@ -358,6 +359,7 @@ class AppStateProvider extends ChangeNotifier {
         phone: user.phoneNumber ?? "",
         avatarEmoji: "👤",
         photoURL: user.photoURL, // Include Google profile picture
+        role: "customer",
       );
       notifyListeners();
       // Auto-create or load profile from Firestore on sign-in
@@ -1060,6 +1062,7 @@ class AppStateProvider extends ChangeNotifier {
                   phone: data['phone'] ?? '+1 234 567 8900',
                   avatarEmoji: data['avatarEmoji'] ?? '👤',
                   photoURL: data['photoURL'], // Load Google profile picture
+                  role: data['role'] ?? 'customer',
                 );
                 notifyListeners();
               }

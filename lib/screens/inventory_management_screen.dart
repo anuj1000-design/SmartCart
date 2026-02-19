@@ -21,7 +21,25 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _loadStats();
+    // Check access permissions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = Provider.of<AppStateProvider>(context, listen: false);
+      // Access Control Check
+      if (appState.userProfile.role != 'admin') {
+        if (mounted) {
+          Navigator.of(context).pop(); // Go back immediately
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content:
+                  const Text('⛔ Access Denied: Admin privileges required.'),
+              backgroundColor: AppTheme.statusError,
+            ),
+          );
+        }
+      } else {
+        _loadStats();
+      }
+    });
   }
 
   Future<void> _loadStats() async {

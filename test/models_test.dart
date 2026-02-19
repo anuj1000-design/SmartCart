@@ -83,4 +83,27 @@ void main() {
       expect(item.quantity, 5);
     });
   });
+
+  group('UserProfile Tests', () {
+    test('should have default role as customer', () {
+      final profile = UserProfile(
+        name: 'Test',
+        email: 'test@example.com',
+        phone: '123',
+        avatarEmoji: '🙂',
+      );
+      expect(profile.role, 'customer');
+    });
+
+    test('should allow setting role', () {
+      final profile = UserProfile(
+        name: 'Admin',
+        email: 'admin@example.com',
+        phone: '123',
+        avatarEmoji: '😎',
+        role: 'admin',
+      );
+      expect(profile.role, 'admin');
+    });
+  });
 }

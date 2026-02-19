@@ -209,19 +209,7 @@ class AppStateProvider extends ChangeNotifier {
 
       final snapshot = await query.get();
       _products = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Product(
-          id: doc.id,
-          name: data['name'] ?? '',
-          category: data['category'] ?? 'other',
-          brand: data['brand'] ?? '',
-          description: data['description'] ?? '',
-          price: (data['price'] ?? 0).toDouble().toInt(),
-          color: Colors.grey.shade800,
-          imageEmoji: data['imageEmoji'] ?? '📦',
-          stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
-          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
-        );
+        return Product.fromMap(doc.data(), doc.id);
       }).toList();
 
       _lastProductDoc = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
@@ -259,19 +247,7 @@ class AppStateProvider extends ChangeNotifier {
 
       final snapshot = await query.get();
       final newProducts = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return Product(
-          id: doc.id,
-          name: data['name'] ?? '',
-          category: data['category'] ?? 'other',
-          brand: data['brand'] ?? '',
-          description: data['description'] ?? '',
-          price: (data['price'] ?? 0).toDouble().toInt(),
-          color: Colors.grey.shade800,
-          imageEmoji: data['imageEmoji'] ?? '📦',
-          stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
-          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
-        );
+        return Product.fromMap(doc.data(), doc.id);
       }).toList();
 
       _products.addAll(newProducts);
@@ -303,18 +279,7 @@ class AppStateProvider extends ChangeNotifier {
       _products = snapshot.docs.map((doc) {
         final data = doc.data();
         debugPrint('📦 Product data: $data');
-        return Product(
-          id: doc.id,
-          name: data['name'] ?? '',
-          category: data['category'] ?? 'other',
-          brand: data['brand'] ?? '',
-          description: data['description'] ?? '',
-          price: (data['price'] ?? 0).toDouble().toInt(),
-          color: Colors.grey.shade800,
-          imageEmoji: data['imageEmoji'] ?? '📦',
-          stockQuantity: (data['stockQuantity'] ?? 0).toInt(),
-          tags: (data['tags'] ?? data['dietaryBadges'] ?? []).cast<String>(),
-        );
+        return Product.fromMap(data, doc.id);
       }).toList();
       notifyListeners();
       debugPrint(
@@ -690,16 +655,7 @@ class AppStateProvider extends ChangeNotifier {
               'userId': userId,
               'email': userEmail, // Add email for order tracking
               'date': order.date,
-              'items': order.items
-                .map(
-                  (item) => {
-                    'productId': item.product.id,
-                    'productName': item.product.name,
-                    'quantity': item.quantity,
-                    'price': item.product.price,
-                  },
-                )
-                .toList(),
+              'items': order.items.map((item) => item.toMap()).toList(),
             'total': order.total,
             'status': order.status,
             'paymentMethod': order.paymentMethod,
@@ -857,12 +813,7 @@ class AppStateProvider extends ChangeNotifier {
               _paymentMethods.clear();
               _paymentMethods.addAll(
                 snapshot.docs.map((doc) {
-                  return PaymentMethod(
-                    id: doc.id,
-                    cardNumber: doc['cardNumber'] ?? '',
-                    cardHolder: doc['cardHolder'] ?? '',
-                    expiryDate: doc['expiryDate'] ?? '',
-                  );
+                  return PaymentMethod.fromMap(doc.data(), doc.id);
                 }),
               );
               notifyListeners();
@@ -887,9 +838,7 @@ class AppStateProvider extends ChangeNotifier {
           .collection('paymentMethods')
           .doc(method.id)
           .set({
-            'cardNumber': method.cardNumber,
-            'cardHolder': method.cardHolder,
-            'expiryDate': method.expiryDate,
+            ...method.toMap(),
             'createdAt': cloud.FieldValue.serverTimestamp(),
           });
     } catch (e) {
@@ -927,12 +876,7 @@ class AppStateProvider extends ChangeNotifier {
           .collection('addresses')
           .doc(address.id)
           .set({
-            'id': address.id,
-            'name': address.name,
-            'street': address.street,
-            'city': address.city,
-            'zipCode': address.zipCode,
-            'phone': address.phone,
+            ...address.toMap(),
             'createdAt': cloud.FieldValue.serverTimestamp(),
           });
     } catch (e) {
@@ -962,15 +906,7 @@ class AppStateProvider extends ChangeNotifier {
         _addresses.clear();
         _addresses.addAll(
           snapshot.docs.map((doc) {
-            final data = doc.data();
-            return Address(
-              id: data['id'] ?? '',
-              name: data['name'] ?? '',
-              street: data['street'] ?? '',
-              city: data['city'] ?? '',
-              zipCode: data['zipCode'] ?? '',
-              phone: data['phone'] ?? '',
-            );
+            return Address.fromMap(doc.data());
           }),
         );
         notifyListeners();
@@ -994,18 +930,7 @@ class AppStateProvider extends ChangeNotifier {
               _orders.clear();
               _orders.addAll(
                 snapshot.docs.map((doc) {
-                  final data = doc.data();
-                  return Order(
-                    id: data['id'] ?? '',
-                    date:
-                        (data['date'] as Timestamp?)?.toDate() ??
-                        DateTime.now(),
-                    items: [],
-                    total: (data['total'] ?? 0).toDouble().toInt(),
-                    status: data['status'] ?? 'Pending',
-                    paymentMethod: data['paymentMethod'] ?? 'UPI',
-                    paymentStatus: data['paymentStatus'] ?? 'Pending Payment',
-                  );
+                  return Order.fromMap(doc.data(), doc.id);
                 }),
               );
               notifyListeners();
